@@ -18,6 +18,13 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    if (role === "principal" || role === "chairman") {
+      const existingCodeUser = await User.findOne({ collegeCode, role });
+      if (existingCodeUser) {
+        return res.status(400).json({ message: `A user with the role ${role === 'chairman' ? 'College Admin' : 'Principal'} already exists for this college code` });
+      }
+    }
+
     const user = await User.create({
       name,
       email,

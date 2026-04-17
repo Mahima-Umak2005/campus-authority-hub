@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
       default: "all",
     },
     collegeName: { type: String },
-    collegeCode: { type: String, sparse: true, unique: true },
+    collegeCode: { type: String, sparse: true },
     collegeAddress: { type: String },
   },
   { timestamps: true },
