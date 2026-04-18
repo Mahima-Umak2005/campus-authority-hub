@@ -11,6 +11,7 @@ const {
   createPoster,
   getActivePosters,
   deletePoster,
+  updatePoster,
 } = require("../controllers/poster.controller");
 
 // Create Poster
@@ -31,6 +32,14 @@ router.delete(
   protect,
   allowRoles("chairman", "principal", "hod", "faculty"),
   deletePoster,
+);
+
+// Update Poster
+router.put(
+  "/:id",
+  protect,
+  allowRoles("chairman", "principal", "hod", "faculty"),
+  updatePoster,
 );
 
 module.exports = router;

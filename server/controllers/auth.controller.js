@@ -11,11 +11,18 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, department } = req.body;
+    const { name, email, password, role, department, collegeName, collegeCode, collegeAddress } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    if (role === "principal" || role === "chairman") {
+      const existingCodeUser = await User.findOne({ collegeCode, role });
+      if (existingCodeUser) {
+        return res.status(400).json({ message: `A user with the role ${role === 'chairman' ? 'College Admin' : 'Principal'} already exists for this college code` });
+      }
     }
 
     const user = await User.create({
@@ -23,7 +30,10 @@ const registerUser = async (req, res) => {
       email,
       password,
       role,
-      department,
+      department: department || "all",
+      collegeName,
+      collegeCode,
+      collegeAddress,
     });
 
     res.status(201).json({
@@ -32,6 +42,9 @@ const registerUser = async (req, res) => {
       email: user.email,
       role: user.role,
       department: user.department,
+      collegeName: user.collegeName,
+      collegeCode: user.collegeCode,
+      collegeAddress: user.collegeAddress,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -59,6 +72,9 @@ const loginUser = async (req, res) => {
       email: user.email,
       role: user.role,
       department: user.department,
+      collegeName: user.collegeName,
+      collegeCode: user.collegeCode,
+      collegeAddress: user.collegeAddress,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -73,6 +89,9 @@ const getMe = async (req, res) => {
     email: req.user.email,
     role: req.user.role,
     department: req.user.department,
+    collegeName: req.user.collegeName,
+    collegeCode: req.user.collegeCode,
+    collegeAddress: req.user.collegeAddress,
   });
 };
 

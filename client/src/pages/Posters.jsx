@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { uploadPosterApi } from "../api/posters";
+import { useAuth } from "../context/AuthContext";
 
 const Posters = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +9,10 @@ const Posters = () => {
     poster: null,
     priority: "medium",
     expiryDate: "",
+    targetDepartment: "all",
   });
+
+  const { user } = useAuth();
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -41,7 +45,14 @@ const Posters = () => {
       data.append("priority", formData.priority);
       data.append("expiryDate", formData.expiryDate);
       data.append("targetAudience", JSON.stringify(["all"]));
-      data.append("targetDepartments", JSON.stringify(["all"]));
+      
+      let finalDepartments = ["all"];
+      if (user?.role === "hod" || user?.role === "faculty") {
+        finalDepartments = [user.department];
+      } else {
+        finalDepartments = [formData.targetDepartment];
+      }
+      data.append("targetDepartments", JSON.stringify(finalDepartments));
 
       await uploadPosterApi(data, token);
 
@@ -53,6 +64,7 @@ const Posters = () => {
         poster: null,
         priority: "medium",
         expiryDate: "",
+        targetDepartment: "all",
       });
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed");
@@ -103,6 +115,20 @@ const Posters = () => {
             <option value="low">Low Priority</option>
             <option value="medium">Medium Priority</option>
             <option value="high">High Priority</option>
+          </select>
+
+          <select
+            name="targetDepartment"
+            value={user?.role === "hod" || user?.role === "faculty" ? user?.department : formData.targetDepartment}
+            onChange={handleChange}
+            disabled={user?.role === "hod" || user?.role === "faculty"}
+            style={styles.input}
+          >
+            <option value="all">All Departments</option>
+            <option value="computer">Computer</option>
+            <option value="electrical">Electrical</option>
+            <option value="mechanical">Mechanical</option>
+            <option value="civil">Civil</option>
           </select>
 
           <input

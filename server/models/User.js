@@ -16,8 +16,11 @@ const userSchema = new mongoose.Schema(
     department: {
       type: String,
       enum: ["computer", "electrical", "mechanical", "civil", "all"],
-      required: true,
+      default: "all",
     },
+    collegeName: { type: String },
+    collegeCode: { type: String, sparse: true },
+    collegeAddress: { type: String },
   },
   { timestamps: true },
 );
