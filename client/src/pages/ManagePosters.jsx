@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const ManagePosters = () => {
+  const { user } = useAuth();
   const [allPosters, setAllPosters] = useState([]);
   const [posters, setPosters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ const ManagePosters = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/posters/active?role=principal&department=all",
+        "http://localhost:5000/api/posters/dashboard",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -161,22 +163,27 @@ const ManagePosters = () => {
 
               <p>
                 <strong>Priority:</strong> {poster.priority}
+                {!poster.isActive && <span style={{ color: "red", marginLeft: "10px", fontWeight: "bold" }}>[DELETED]</span>}
               </p>
 
               <div style={styles.btnGroup}>
-                <button
-                  style={styles.editBtn}
-                  onClick={() => handleEdit(poster)}
-                >
-                  Edit
-                </button>
+                {user && (poster.uploadedBy === user._id || user.role === "principal" || user.role === "admin") && (
+                  <>
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => handleEdit(poster)}
+                    >
+                      Edit
+                    </button>
 
-                <button
-                  style={styles.deleteBtn}
-                  onClick={() => handleDelete(poster._id)}
-                >
-                  Delete
-                </button>
+                    <button
+                      style={styles.deleteBtn}
+                      onClick={() => handleDelete(poster._id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}
