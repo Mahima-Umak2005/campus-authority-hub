@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["chairman", "principal", "hod", "faculty"],
+      enum: ["chairman", "principal", "hod", "faculty", "admin"],
       required: true,
     },
     department: {
@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
     collegeName: { type: String },
     collegeCode: { type: String, sparse: true },
     collegeAddress: { type: String },
+    className: { type: String },
   },
   { timestamps: true },
 );

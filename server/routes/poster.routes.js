@@ -12,6 +12,7 @@ const {
   getActivePosters,
   deletePoster,
   updatePoster,
+  getDashboardPosters,
 } = require("../controllers/poster.controller");
 
 // Create Poster
@@ -23,8 +24,11 @@ router.post(
   createPoster,
 );
 
-// Get Active Posters
-router.get("/active", protect, getActivePosters);
+// Get Active Posters (Public for Display Screen)
+router.get("/active", getActivePosters);
+
+// Get Dashboard Posters (Protected, returns all for Admin/Principal, and uploader's soft-deleted ones)
+router.get("/dashboard", protect, getDashboardPosters);
 
 // Delete Poster
 router.delete(

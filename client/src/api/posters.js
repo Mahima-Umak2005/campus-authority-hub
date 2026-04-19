@@ -20,3 +20,10 @@ export const getActivePostersApi = (role, department, token) =>
       Authorization: `Bearer ${token}`,
     },
   });
+
+export const getDashboardPostersApi = (token) =>
+  API.get("/dashboard", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 import PosterList from "../components/PosterList";
-import { getActivePostersApi } from "../api/posters";
+import { getDashboardPostersApi } from "../api/posters";
 
 const HODDashboard = () => {
   const { user } = useAuth();
@@ -17,8 +17,7 @@ const HODDashboard = () => {
     const fetchPosters = async () => {
       try {
         const token = localStorage.getItem("token");
-        // Fetch posters targeted at this HOD's department
-        const { data } = await getActivePostersApi("hod", user?.department || "all", token);
+        const { data } = await getDashboardPostersApi(token);
         setPosters(data);
       } catch (err) {
         console.error("Failed to load posters", err);

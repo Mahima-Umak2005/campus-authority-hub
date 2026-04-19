@@ -118,6 +118,7 @@ const PrincipalDashboard = () => {
             <select name="role" value={newUser.role} onChange={handleUserChange} style={{ padding: "8px" }}>
               <option value="faculty">Faculty</option>
               <option value="hod">HOD</option>
+              <option value="admin">Admin Staff</option>
             </select>
             <select name="department" value={newUser.department} onChange={handleUserChange} style={{ padding: "8px" }}>
               <option value="computer">Computer</option>
