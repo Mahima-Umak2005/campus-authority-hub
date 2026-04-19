@@ -21,7 +21,11 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
+<<<<<<< HEAD
     "csv-parser": "^3.0.0"
+=======
+    "streamifier": "^0.1.1"
+>>>>>>> 8807a287da3eb907c15b4fad338a31dd6fb89761
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

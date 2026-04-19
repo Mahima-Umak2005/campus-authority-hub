@@ -3,107 +3,104 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 import PosterList from "../components/PosterList";
+<<<<<<< HEAD
 import { getDashboardPostersApi } from "../api/posters";
+=======
+import { getActivePostersApi } from "../api/posters";
+import { getDashboardFiles } from "../api/repository";
+>>>>>>> 8807a287da3eb907c15b4fad338a31dd6fb89761
 
 const HODDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [posters, setPosters] = useState([]);
+  const [files, setFiles] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchPosters = async () => {
+    const loadData = async () => {
       try {
         const token = localStorage.getItem("token");
+<<<<<<< HEAD
         const { data } = await getDashboardPostersApi(token);
         setPosters(data);
       } catch (err) {
         console.error("Failed to load posters", err);
         setError("Failed to load department notices.");
+=======
+
+        const posterData = await getActivePostersApi(
+          "hod",
+          user?.department || "all",
+          token
+        );
+
+        setPosters(posterData.data);
+
+        const repoData = await getDashboardFiles(
+          "hod",
+          user?.department || "all"
+        );
+
+        setFiles(repoData);
+      } catch (error) {
+        console.log(error);
+>>>>>>> 8807a287da3eb907c15b4fad338a31dd6fb89761
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
-      fetchPosters();
-    }
+    if (user) loadData();
   }, [user]);
 
   return (
     <Layout>
-      <div style={styles.header}>
-        <div>
-          <h2>HOD Dashboard</h2>
-          <p style={styles.subtitle}>
-            Welcome back, <strong>{user?.name}</strong>. Managing the <strong>{user?.department}</strong> department.
-          </p>
-        </div>
-        <button 
-          style={styles.actionButton} 
-          onClick={() => navigate("/posters/new")}
-        >
-          + Add New Notice
-        </button>
-      </div>
+      <h2>HOD Dashboard</h2>
+      <p>Welcome, {user?.name}</p>
 
-      <div style={styles.content}>
-        <h3>Active Department Notices</h3>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {loading ? (
-          <p>Loading notices...</p>
-        ) : posters.length === 0 ? (
-          <div style={styles.emptyState}>
-            <p>No active notices found for your department.</p>
+      <h3 style={{ marginTop: "30px" }}>Repository Updates</h3>
+
+      {files.length === 0 ? (
+        <p>No repository files</p>
+      ) : (
+        files.map((file) => (
+          <div key={file._id} style={styles.card}>
+            <h4>{file.title}</h4>
+            <p>{file.subCategory}</p>
+            <small>
+              {file.department} |{" "}
+              {new Date(file.createdAt).toLocaleDateString()}
+            </small>
           </div>
-        ) : (
-          <PosterList posters={posters} />
-        )}
-      </div>
+        ))
+      )}
+
+      <h3 style={{ marginTop: "40px" }}>Posters</h3>
+
+      {loading ? <p>Loading...</p> : <PosterList posters={posters} />}
     </Layout>
   );
 };
 
 const styles = {
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "30px",
-    flexWrap: "wrap",
-    gap: "15px",
-  },
-  subtitle: {
-    color: "#6b7280",
-    fontSize: "16px",
-    marginTop: "5px",
-  },
-  actionButton: {
-    padding: "12px 24px",
-    backgroundColor: "#2563eb",
-    color: "white",
+  btn: {
+    padding: "10px 15px",
+    background: "#2563eb",
+    color: "#fff",
     border: "none",
     borderRadius: "8px",
-    fontSize: "16px",
-    fontWeight: "600",
     cursor: "pointer",
-    boxShadow: "0 4px 6px rgba(37, 99, 235, 0.2)",
-    transition: "transform 0.2s, background-color 0.2s",
   },
-  content: {
-    marginTop: "20px",
+  card: {
+    background: "#fff",
+    padding: "15px",
+    borderRadius: "10px",
+    marginBottom: "10px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
   },
-  emptyState: {
-    padding: "40px",
-    textAlign: "center",
-    backgroundColor: "#f9fafb",
-    border: "1px dashed #d1d5db",
-    borderRadius: "12px",
-    color: "#6b7280",
-    marginTop: "20px",
-  }
 };
 
 export default HODDashboard;
