@@ -9,6 +9,8 @@ import Posters from "../pages/Posters";
 import DisplayScreen from "../pages/DisplayScreen";
 import Home from "../pages/Home";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Repository from "../pages/Repository";
+import UploadRepository from "../pages/UploadRepository";
 import ManagePosters from "../pages/ManagePosters";
 const AppRoutes = () => {
   return (
@@ -26,6 +28,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/repository/upload"
+  element={
+    <ProtectedRoute
+      allowedRoles={["chairman", "principal", "hod", "faculty"]}
+    >
+      <UploadRepository />
+    </ProtectedRoute>
+  }
+/>
       <Route
   path="/manage-posters"
   element={
@@ -52,7 +64,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+      <Route
+  path="/repository"
+  element={
+    <ProtectedRoute
+      allowedRoles={["chairman", "principal", "hod", "faculty"]}
+    >
+      <Repository />
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/posters/new"
         element={
