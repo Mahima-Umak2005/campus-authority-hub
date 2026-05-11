@@ -26,23 +26,24 @@ const RepositoryWidget = () => {
   };
 
   return (
-    <div style={styles.box}>
-      <h2>Repository Updates</h2>
+    <div className="bg-white p-5 rounded-xl mt-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Repository Updates</h2>
 
       {files.length === 0 ? (
-        <p>No files available</p>
+        <p className="text-gray-500 italic">No files available</p>
       ) : (
         files.map((file) => (
-          <div key={file._id} style={styles.card}>
-            <h4>{file.title}</h4>
-            <p>{file.subCategory}</p>
-            <small>{file.department}</small>
+          <div key={file._id} className="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+            <h4 className="font-semibold text-gray-800 mb-1">{file.title}</h4>
+            <p className="text-sm text-gray-600 mb-0.5">{file.subCategory}</p>
+            <small className="text-xs text-gray-400 uppercase tracking-wider font-medium">{file.department}</small>
             <br />
 
             <a
               href={file.fileUrl}
               target="_blank"
               rel="noreferrer"
+              className="inline-block mt-2 text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
             >
               Open File
             </a>
@@ -51,20 +52,6 @@ const RepositoryWidget = () => {
       )}
     </div>
   );
-};
-
-const styles = {
-  box: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginTop: "20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-  },
-  card: {
-    padding: "12px",
-    borderBottom: "1px solid #eee",
-  },
 };
 
 export default RepositoryWidget;

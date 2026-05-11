@@ -34,6 +34,7 @@ const PrincipalDashboard = () => {
 
   const [userMsg, setUserMsg] = useState("");
   const [userErr, setUserErr] = useState("");
+  const [creatingUser, setCreatingUser] = useState(false);
 
   const handleUserChange = (e) => {
     setNewUser({ ...newUser, [e.target.name]: e.target.value });
@@ -41,15 +42,13 @@ const PrincipalDashboard = () => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-
     setUserMsg("");
     setUserErr("");
+    setCreatingUser(true);
 
     try {
       await registerApi(newUser);
-
       setUserMsg("User created successfully!");
-
       setNewUser({
         name: "",
         email: "",
@@ -57,8 +56,12 @@ const PrincipalDashboard = () => {
         role: "faculty",
         department: "computer",
       });
+      setTimeout(() => setUserMsg(""), 3000);
     } catch (err) {
       setUserErr(err.response?.data?.message || "Failed to create user");
+      setTimeout(() => setUserErr(""), 3000);
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -66,16 +69,10 @@ const PrincipalDashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-
         const res = await axios.get(
           "http://localhost:5000/api/dashboard/stats",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
         setStats(res.data);
       } catch (err) {
         setStatsError("Failed to load stats");
@@ -87,13 +84,7 @@ const PrincipalDashboard = () => {
     const fetchPosters = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        const { data } = await getActivePostersApi(
-          "principal",
-          "all",
-          token
-        );
-
+        const { data } = await getActivePostersApi("principal", "all", token);
         setPosters(data);
       } catch (err) {
         console.log(err);
@@ -105,14 +96,12 @@ const PrincipalDashboard = () => {
     const fetchRepoFiles = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        const { data } = await getDashboardFiles(
+        const repoData = await getDashboardFiles(
           user?.role,
           user?.department,
           token
         );
-
-        setRepoFiles(data);
+        setRepoFiles(repoData || []);
       } catch (err) {
         console.log(err);
       } finally {
@@ -122,7 +111,6 @@ const PrincipalDashboard = () => {
 
     fetchStats();
     fetchPosters();
-
     if (user) {
       fetchRepoFiles();
     }
@@ -130,224 +118,270 @@ const PrincipalDashboard = () => {
 
   return (
     <Layout>
-      <h2>Principal Dashboard</h2>
-      <p>Welcome, {user?.name}</p>
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <i className="fas fa-chalkboard-user text-2xl text-blue-600"></i>
+          <h2 className="text-2xl font-bold text-gray-800">Principal Dashboard</h2>
+        </div>
+        <p className="text-gray-500">
+          Welcome back, <span className="font-semibold text-blue-600">{user?.name}</span>
+        </p>
+      </div>
 
-      {loading && <p>Loading dashboard data...</p>}
-      {statsError && <p style={{ color: "red" }}>{statsError}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {/* Loading & Error States */}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <i className="fas fa-spinner fa-spin text-blue-500 text-2xl mr-2"></i>
+          <span className="text-gray-500">Loading dashboard data...</span>
+        </div>
+      )}
+      {statsError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <i className="fas fa-exclamation-circle text-red-500"></i>
+          <p className="text-red-600 text-sm">{statsError}</p>
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <i className="fas fa-exclamation-triangle text-red-500"></i>
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
-      {/* Stats */}
-      {stats ? (
-        <div
-          style={{
-            display: "grid",
-            gap: "20px",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px,1fr))",
-          }}
-        >
+      {/* Statistics Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
           <StatCard
             title="Total Users"
             value={stats.totalUsers ?? 0}
             color="#2563eb"
+            icon="users"
           />
-
           <StatCard
             title="Total Files"
             value={stats.totalFiles ?? 0}
             color="#16a34a"
+            icon="file-alt"
           />
-
           <StatCard
             title="Active Posters"
             value={stats.activePosters ?? 0}
             color="#f59e0b"
+            icon="newspaper"
           />
-
           <StatCard
             title="Departments"
             value={stats.departments ?? 0}
             color="#dc2626"
+            icon="building"
           />
         </div>
-      ) : (
-        !loading && <p>No stats available</p>
       )}
 
-      {/* Posters */}
-      <div style={{ marginTop: "40px" }}>
-        <h3>Uploaded Posters</h3>
-
+      {/* Posters Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-5">
+          <i className="fas fa-images text-xl text-blue-600"></i>
+          <h3 className="text-xl font-semibold text-gray-800">Uploaded Posters</h3>
+        </div>
         {posterLoading ? (
-          <p>Loading posters...</p>
+          <div className="flex items-center gap-2 text-gray-500">
+            <i className="fas fa-spinner fa-spin"></i>
+            <span>Loading posters...</span>
+          </div>
         ) : (
           <PosterList posters={posters} />
         )}
       </div>
 
-      {/* Repository Files */}
-      <div style={{ marginTop: "40px" }}>
-        <h3>Repository Dashboard Files</h3>
-
+      {/* Repository Files Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-5">
+          <i className="fas fa-folder-open text-xl text-emerald-600"></i>
+          <h3 className="text-xl font-semibold text-gray-800">Repository Files</h3>
+        </div>
         {repoLoading ? (
-          <p>Loading repository files...</p>
+          <div className="flex items-center gap-2 text-gray-500">
+            <i className="fas fa-spinner fa-spin"></i>
+            <span>Loading repository files...</span>
+          </div>
         ) : repoFiles.length === 0 ? (
-          <p>No files available.</p>
+          <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
+            <i className="fas fa-folder-open text-4xl text-gray-300 mb-2"></i>
+            <p className="text-gray-500">No files available in repository.</p>
+          </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gap: "15px",
-            }}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {repoFiles.map((file) => (
               <div
                 key={file._id}
-                style={{
-                  background: "#ffffff",
-                  padding: "15px",
-                  borderRadius: "10px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
+                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
               >
-                <h4 style={{ marginBottom: "6px" }}>{file.title}</h4>
-
-                <p style={{ margin: "4px 0", color: "#6b7280" }}>
-                  {file.category} / {file.subCategory}
-                </p>
-
-                <p style={{ margin: "4px 0", color: "#6b7280" }}>
-                  Department: {file.department}
-                </p>
-
-                <p style={{ margin: "4px 0", color: "#6b7280" }}>
-                  Uploaded:{" "}
-                  {new Date(file.createdAt).toLocaleDateString()}
-                </p>
-
-                <a
-                  href={file.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "10px",
-                    padding: "8px 14px",
-                    background: "#2563eb",
-                    color: "#fff",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                  }}
-                >
-                  View File
-                </a>
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <i className="fas fa-file-pdf text-blue-600 text-lg"></i>
+                      </div>
+                      <h4 className="font-semibold text-gray-800 line-clamp-1">
+                        {file.title}
+                      </h4>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <i className="fas fa-tag text-xs text-gray-400"></i>
+                      {file.category} / {file.subCategory}
+                    </p>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <i className="fas fa-building text-xs text-gray-400"></i>
+                      {file.department}
+                    </p>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <i className="fas fa-calendar-alt text-xs text-gray-400"></i>
+                      {new Date(file.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <a
+                    href={file.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    <i className="fas fa-download text-sm"></i>
+                    View File
+                  </a>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Create User */}
+      {/* Create User Section (Chairman Only) */}
       {user?.role === "chairman" && (
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "20px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            maxWidth: "500px",
-          }}
-        >
-          <h3>Create Department User (Faculty / HOD)</h3>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden max-w-2xl">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <i className="fas fa-user-plus text-blue-600 text-lg"></i>
+              <h3 className="text-lg font-semibold text-gray-800">Create Department User</h3>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Add faculty, HOD, or admin staff members</p>
+          </div>
 
-          <form
-            onSubmit={handleCreateUser}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={newUser.name}
-              onChange={handleUserChange}
-              required
-              style={{ padding: "8px" }}
-            />
+          <form onSubmit={handleCreateUser} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-user mr-1 text-gray-400"></i> Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="John Doe"
+                  value={newUser.name}
+                  onChange={handleUserChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                />
+              </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={handleUserChange}
-              required
-              style={{ padding: "8px" }}
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-envelope mr-1 text-gray-400"></i> Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="user@college.edu"
+                  value={newUser.email}
+                  onChange={handleUserChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                />
+              </div>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={handleUserChange}
-              required
-              style={{ padding: "8px" }}
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-lock mr-1 text-gray-400"></i> Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={newUser.password}
+                  onChange={handleUserChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                />
+              </div>
 
-            <select
-              name="role"
-              value={newUser.role}
-              onChange={handleUserChange}
-              style={{ padding: "8px" }}
-            >
-              <option value="faculty">Faculty</option>
-              <option value="hod">HOD</option>
-              <option value="admin">Admin Staff</option>
-            </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-user-tie mr-1 text-gray-400"></i> Role
+                </label>
+                <select
+                  name="role"
+                  value={newUser.role}
+                  onChange={handleUserChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                >
+                  <option value="faculty">Faculty</option>
+                  <option value="hod">HOD</option>
+                  <option value="admin">Admin Staff</option>
+                </select>
+              </div>
 
-            <select
-              name="department"
-              value={newUser.department}
-              onChange={handleUserChange}
-              style={{ padding: "8px" }}
-            >
-              <option value="computer">Computer</option>
-              <option value="electrical">Electrical</option>
-              <option value="mechanical">Mechanical</option>
-              <option value="civil">Civil</option>
-            </select>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <i className="fas fa-building mr-1 text-gray-400"></i> Department
+                </label>
+                <select
+                  name="department"
+                  value={newUser.department}
+                  onChange={handleUserChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                >
+                  <option value="computer">Computer Science</option>
+                  <option value="electrical">Electrical Engineering</option>
+                  <option value="mechanical">Mechanical Engineering</option>
+                  <option value="civil">Civil Engineering</option>
+                </select>
+              </div>
+            </div>
 
             <button
               type="submit"
-              style={{
-                padding: "10px",
-                backgroundColor: "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+              disabled={creatingUser}
+              className="mt-5 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Create User
+              {creatingUser ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-user-plus"></i>
+                  Create User
+                </>
+              )}
             </button>
+
+            {userMsg && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                <i className="fas fa-check-circle text-green-500"></i>
+                <p className="text-green-600 text-sm">{userMsg}</p>
+              </div>
+            )}
+            {userErr && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                <i className="fas fa-exclamation-circle text-red-500"></i>
+                <p className="text-red-600 text-sm">{userErr}</p>
+              </div>
+            )}
           </form>
-
-          {userMsg && (
-            <p style={{ color: "green", marginTop: "10px" }}>
-              {userMsg}
-            </p>
-          )}
-
-          {userErr && (
-            <p style={{ color: "red", marginTop: "10px" }}>
-              {userErr}
-            </p>
-          )}
         </div>
       )}
     </Layout>

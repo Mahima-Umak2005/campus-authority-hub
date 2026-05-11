@@ -121,21 +121,21 @@ const ManagePosters = () => {
 
   return (
     <Layout>
-      <h2>Manage Posters</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Manage Posters</h2>
 
-      <div style={styles.topBar}>
+      <div className="flex gap-[15px] my-5 flex-wrap">
         <input
           type="text"
           placeholder="Search posters..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={styles.input}
+          className="p-2.5 w-[260px] rounded-lg border border-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         />
 
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          style={styles.select}
+          className="p-2.5 rounded-lg border border-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
         >
           <option value="all">All Priority</option>
           <option value="high">High</option>
@@ -145,39 +145,39 @@ const ManagePosters = () => {
       </div>
 
       {loading ? (
-        <p>Loading posters...</p>
+        <p className="text-gray-500 italic">Loading posters...</p>
       ) : posters.length === 0 ? (
-        <p>No posters found</p>
+        <p className="text-gray-500">No posters found</p>
       ) : (
-        <div style={styles.grid}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
           {posters.map((poster) => (
-            <div key={poster._id} style={styles.card}>
+            <div key={poster._id} className="bg-white p-[15px] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex flex-col">
               <img
                 src={poster.imageUrl}
                 alt={poster.title}
-                style={styles.image}
+                className="w-full h-[180px] object-cover rounded-[10px] mb-2.5"
               />
 
-              <h3>{poster.title}</h3>
-              <p>{poster.description}</p>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">{poster.title}</h3>
+              <p className="text-gray-600 text-sm mb-2.5 flex-grow">{poster.description}</p>
 
-              <p>
-                <strong>Priority:</strong> {poster.priority}
-                {!poster.isActive && <span style={{ color: "red", marginLeft: "10px", fontWeight: "bold" }}>[DELETED]</span>}
+              <p className="text-sm mb-3">
+                <strong className="text-gray-800">Priority:</strong> <span className="capitalize">{poster.priority}</span>
+                {!poster.isActive && <span className="text-red-500 ml-2.5 font-bold">[DELETED]</span>}
               </p>
 
-              <div style={styles.btnGroup}>
+              <div className="flex gap-2.5 mt-auto pt-2">
                 {user && (poster.uploadedBy === user._id || user.role === "principal" || user.role === "admin") && (
                   <>
                     <button
-                      style={styles.editBtn}
+                      className="flex-1 p-2.5 bg-blue-600 text-white border-none rounded-lg cursor-pointer font-semibold transition-colors hover:bg-blue-700"
                       onClick={() => handleEdit(poster)}
                     >
                       Edit
                     </button>
 
                     <button
-                      style={styles.deleteBtn}
+                      className="flex-1 p-2.5 bg-red-500 text-white border-none rounded-lg cursor-pointer font-semibold transition-colors hover:bg-red-600"
                       onClick={() => handleDelete(poster._id)}
                     >
                       Delete
@@ -191,67 +191,6 @@ const ManagePosters = () => {
       )}
     </Layout>
   );
-};
-
-const styles = {
-  topBar: {
-    display: "flex",
-    gap: "15px",
-    margin: "20px 0",
-    flexWrap: "wrap",
-  },
-  input: {
-    padding: "10px",
-    width: "260px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-  },
-  select: {
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-    gap: "20px",
-  },
-  card: {
-    background: "#fff",
-    padding: "15px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  },
-  image: {
-    width: "100%",
-    height: "180px",
-    objectFit: "cover",
-    borderRadius: "10px",
-    marginBottom: "10px",
-  },
-  btnGroup: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "12px",
-  },
-  editBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-  deleteBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
 };
 
 export default ManagePosters;

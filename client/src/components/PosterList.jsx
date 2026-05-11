@@ -1,10 +1,10 @@
 import PosterCard from "./PosterCard";
 
 const PosterList = ({ posters }) => {
-  if (!posters.length) return <p>No posters available</p>;
+  if (!posters.length) return <p className="text-gray-500 italic">No posters available</p>;
 
   return (
-    <div style={{ display: "grid", gap: "20px", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}>
+    <div className="grid gap-5 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
       {posters.map((poster) => (
         <PosterCard key={poster._id} poster={poster} />
       ))}

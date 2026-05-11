@@ -34,54 +34,38 @@ const AdminDashboard = () => {
 
   return (
     <Layout>
-      <div style={styles.header}>
+      <div className="flex justify-between items-center mb-[30px] flex-wrap gap-[15px]">
         <div>
-          <h2>Admin Dashboard</h2>
-          <p style={styles.subtitle}>
-            Welcome back, <strong>{user?.name}</strong>. Managing administrative tasks.
+          <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+          <p className="text-gray-500 text-base mt-[5px]">
+            Welcome back, <strong className="text-blue-600">{user?.name}</strong>. Managing administrative tasks.
           </p>
         </div>
       </div>
 
-      <div style={{ marginTop: "40px", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", maxWidth: "500px" }}>
-        <h3>Create Department User (HOD / Faculty)</h3>
-        <form onSubmit={handleCreateUser} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <input type="text" name="name" placeholder="Name" value={newUser.name} onChange={handleUserChange} required style={{ padding: "8px" }} />
-          <input type="email" name="email" placeholder="Email" value={newUser.email} onChange={handleUserChange} required style={{ padding: "8px" }} />
-          <input type="password" name="password" placeholder="Password" value={newUser.password} onChange={handleUserChange} required style={{ padding: "8px" }} />
-          <select name="role" value={newUser.role} onChange={handleUserChange} style={{ padding: "8px" }}>
+      <div className="mt-10 p-6 bg-white border border-gray-200 rounded-xl max-w-[500px] shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
+        <h3 className="text-xl font-semibold mb-5 text-gray-800">Create Department User (HOD / Faculty)</h3>
+        <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
+          <input type="text" name="name" placeholder="Name" value={newUser.name} onChange={handleUserChange} required className="p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+          <input type="email" name="email" placeholder="Email" value={newUser.email} onChange={handleUserChange} required className="p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+          <input type="password" name="password" placeholder="Password" value={newUser.password} onChange={handleUserChange} required className="p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" />
+          <select name="role" value={newUser.role} onChange={handleUserChange} className="p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white transition-colors">
             <option value="hod">HOD</option>
             <option value="faculty">Faculty</option>
           </select>
-          <select name="department" value={newUser.department} onChange={handleUserChange} style={{ padding: "8px" }}>
+          <select name="department" value={newUser.department} onChange={handleUserChange} className="p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white transition-colors">
             <option value="computer">Computer</option>
             <option value="electrical">Electrical</option>
             <option value="mechanical">Mechanical</option>
             <option value="civil">Civil</option>
           </select>
-          <button type="submit" style={{ padding: "10px", backgroundColor: "#2563eb", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Create User</button>
+          <button type="submit" className="p-3 bg-blue-600 text-white border-none rounded-lg cursor-pointer font-bold transition-colors hover:bg-blue-700 mt-2">Create User</button>
         </form>
-        {userMsg && <p style={{ color: "green", marginTop: "10px" }}>{userMsg}</p>}
-        {userErr && <p style={{ color: "red", marginTop: "10px" }}>{userErr}</p>}
+        {userMsg && <p className="text-green-600 mt-4 font-medium p-2.5 bg-green-50 rounded-lg border border-green-200">{userMsg}</p>}
+        {userErr && <p className="text-red-500 mt-4 font-medium p-2.5 bg-red-50 rounded-lg border border-red-200">{userErr}</p>}
       </div>
     </Layout>
   );
-};
-
-const styles = {
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "30px",
-    flexWrap: "wrap",
-    gap: "15px",
-  },
-  subtitle: {
-    color: "#6b7280",
-    fontSize: "16px",
-    marginTop: "5px",
-  },
 };
 
 export default AdminDashboard;

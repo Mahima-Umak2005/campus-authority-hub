@@ -12,25 +12,16 @@ const PosterSlideshow = ({ posters }) => {
     return () => clearInterval(interval);
   }, [posters]);
 
-  if (!posters.length) return <div>No active posters</div>;
+  if (!posters.length) return <div className="text-white text-xl">No active posters</div>;
 
   const poster = posters[index];
 
   return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        background: "#111",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <div className="w-screen h-screen bg-[#111] flex justify-center items-center">
       <img
         src={poster.imageUrl}
         alt={poster.title}
-        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+        className="max-w-full max-h-full object-contain"
       />
     </div>
   );
