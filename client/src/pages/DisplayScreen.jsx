@@ -43,9 +43,9 @@ const DisplayScreen = () => {
   });
 
   const renderNoticeCard = (poster) => (
-    <div key={poster._id} style={styles.card}>
-      <h3 style={styles.cardTitle}>{poster.title}</h3>
-      <p style={styles.cardDesc}>
+    <div key={poster._id} className="bg-white rounded-xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-200 flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)]">
+      <h3 className="text-lg text-gray-900 m-0 mb-2.5 font-semibold">{poster.title}</h3>
+      <p className="text-sm text-gray-500 leading-relaxed mb-5 flex-grow">
         {poster.description.length > 80 
           ? poster.description.substring(0, 80) + "..." 
           : poster.description}
@@ -54,7 +54,7 @@ const DisplayScreen = () => {
         href={poster.imageUrl} 
         target="_blank" 
         rel="noopener noreferrer" 
-        style={styles.link}
+        className="inline-block text-blue-600 no-underline font-semibold text-sm mt-auto hover:text-blue-800 transition-colors"
       >
         View Poster ➔
       </a>
@@ -62,39 +62,41 @@ const DisplayScreen = () => {
   );
 
   if (loading) {
-    return <div style={styles.loading}>Loading Notices...</div>;
+    return <div className="flex justify-center items-center h-screen text-2xl text-gray-600 bg-gray-50">Loading Notices...</div>;
   }
 
   return (
-    <div style={styles.wrapper}>
-      <header style={styles.navbar}>
-        <h2 style={styles.logo}>Campus Authority Hub</h2>
-        <div>
-          <Link to="/login" style={styles.navBtn}>Login</Link>
-          <Link to="/register" style={styles.registerBtn}>Register</Link>
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <header className="h-[75px] bg-white flex justify-between items-center px-[50px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] sticky top-0 z-50">
+        <h2 className="text-blue-700 m-0 text-2xl font-bold">Campus Authority Hub</h2>
+        <div className="flex items-center gap-4">
+          <Link to="/login" className="text-blue-700 font-bold hover:text-blue-800 transition-colors">Login</Link>
+          <Link to="/register" className="bg-blue-700 text-white px-[18px] py-2.5 rounded-lg font-bold hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg">Register</Link>
         </div>
       </header>
 
-      <div style={styles.container}>
-        <h1 style={styles.pageTitle}>Campus Notice Board</h1>
+      <div className="p-10 max-w-[1200px] mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-blue-900 text-4xl inline-block pb-2.5 border-b-[3px] border-blue-600 font-bold">Campus Notice Board</h1>
+        </div>
       
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>🏫 College Notices</h2>
+      <div className="mb-[50px]">
+        <h2 className="text-gray-700 text-2xl mb-5 flex items-center gap-2.5 font-bold">🏫 College Notices</h2>
         {collegeNotices.length > 0 ? (
-          <div style={styles.grid}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
             {collegeNotices.map(renderNoticeCard)}
           </div>
         ) : (
-          <p style={styles.empty}>No active college notices.</p>
+          <p className="text-gray-400 italic">No active college notices.</p>
         )}
       </div>
 
       {Object.keys(deptGroups).map(dept => (
-        <div key={dept} style={styles.section}>
-          <h2 style={styles.sectionTitle}>
+        <div key={dept} className="mb-[50px]">
+          <h2 className="text-gray-700 text-2xl mb-5 flex items-center gap-2.5 font-bold">
             🏛️ {dept.charAt(0).toUpperCase() + dept.slice(1)} Department Notices
           </h2>
-          <div style={styles.grid}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
             {deptGroups[dept].map(renderNoticeCard)}
           </div>
         </div>
@@ -102,116 +104,6 @@ const DisplayScreen = () => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  wrapper: {
-    minHeight: "100vh",
-    backgroundColor: "#f9fafb",
-  },
-  navbar: {
-    height: "75px",
-    background: "#ffffff",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 50px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-    fontFamily: "Arial, sans-serif",
-  },
-  logo: {
-    color: "#1d4ed8",
-    margin: 0,
-  },
-  navBtn: {
-    marginRight: "15px",
-    textDecoration: "none",
-    color: "#1d4ed8",
-    fontWeight: "bold",
-  },
-  registerBtn: {
-    textDecoration: "none",
-    background: "#1d4ed8",
-    color: "#fff",
-    padding: "10px 18px",
-    borderRadius: "8px",
-    fontWeight: "bold",
-  },
-  container: {
-    padding: "40px",
-    maxWidth: "1200px",
-    margin: "0 auto",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-  },
-  pageTitle: {
-    textAlign: "center",
-    color: "#1e3a8a",
-    fontSize: "36px",
-    marginBottom: "40px",
-    borderBottom: "3px solid #2563eb",
-    display: "inline-block",
-    paddingBottom: "10px",
-  },
-  section: {
-    marginBottom: "50px",
-  },
-  sectionTitle: {
-    color: "#374151",
-    fontSize: "24px",
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "25px",
-  },
-  card: {
-    background: "#fff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-    border: "1px solid #e5e7eb",
-    display: "flex",
-    flexDirection: "column",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-  },
-  cardTitle: {
-    fontSize: "18px",
-    color: "#111827",
-    margin: "0 0 10px 0",
-    fontWeight: "600",
-  },
-  cardDesc: {
-    fontSize: "14px",
-    color: "#6b7280",
-    lineHeight: "1.5",
-    marginBottom: "20px",
-    flexGrow: 1,
-  },
-  link: {
-    display: "inline-block",
-    color: "#2563eb",
-    textDecoration: "none",
-    fontWeight: "600",
-    fontSize: "14px",
-    marginTop: "auto",
-  },
-  empty: {
-    color: "#9ca3af",
-    fontStyle: "italic",
-  },
-  loading: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    fontSize: "24px",
-    color: "#4b5563",
-    backgroundColor: "#f9fafb",
-  }
 };
 
 export default DisplayScreen;

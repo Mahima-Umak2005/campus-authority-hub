@@ -24,46 +24,31 @@ const FacultyDashboard = () => {
 
   return (
     <Layout>
-      <h2>Faculty Dashboard</h2>
-      <p>Welcome, {user?.name}</p>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">Faculty Dashboard</h2>
+      <p className="text-gray-500 mb-6">Welcome, <strong className="text-blue-600">{user?.name}</strong></p>
 
       <button
-        style={styles.btn}
+        className="px-[15px] py-[10px] bg-green-600 text-white border-none rounded-lg cursor-pointer font-semibold transition-colors hover:bg-green-700"
         onClick={() => navigate("/upload-repository")}
       >
         Upload Repository File
       </button>
 
-      <h3 style={{ marginTop: "25px" }}>Repository Files</h3>
+      <h3 className="mt-[25px] text-xl font-semibold text-gray-800 mb-4">Repository Files</h3>
 
+      <div className="grid gap-4">
       {files.map((file) => (
-        <div key={file._id} style={styles.card}>
-          <h4>{file.title}</h4>
-          <p>{file.subCategory}</p>
-          <small>
+        <div key={file._id} className="bg-white p-[15px] rounded-[10px] shadow-sm border border-gray-200">
+          <h4 className="font-semibold text-gray-800 mb-1">{file.title}</h4>
+          <p className="text-sm text-gray-600 mb-1">{file.subCategory}</p>
+          <small className="text-xs text-gray-500">
             {new Date(file.createdAt).toLocaleDateString()}
           </small>
         </div>
       ))}
+      </div>
     </Layout>
   );
-};
-
-const styles = {
-  btn: {
-    padding: "10px 15px",
-    background: "#16a34a",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-  card: {
-    background: "#fff",
-    padding: "15px",
-    marginBottom: "10px",
-    borderRadius: "10px",
-  },
 };
 
 export default FacultyDashboard;

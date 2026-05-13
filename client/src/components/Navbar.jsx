@@ -11,39 +11,17 @@ const Navbar = () => {
   };
 
   return (
-    <div style={styles.nav}>
+    <div className="h-[70px] bg-white flex justify-between items-center px-[25px] border-b border-gray-200 shadow-sm sticky top-0 z-10">
       <div>
-        <h3 style={{ margin: 0 }}>Campus Authority Hub</h3>
-        <small>Welcome, {user?.name}</small>
+        <h3 className="m-0 text-xl font-bold text-gray-800 tracking-tight">Campus Authority Hub</h3>
+        <small className="text-gray-500 font-medium text-sm mt-1 block">Welcome, <span className="text-blue-600">{user?.name}</span></small>
       </div>
 
-      <button onClick={handleLogout} style={styles.btn}>
+      <button onClick={handleLogout} className="px-4 py-2.5 border-none rounded-lg bg-red-500 text-white cursor-pointer font-bold transition-colors hover:bg-red-600 shadow-sm hover:shadow">
         Logout
       </button>
     </div>
   );
-};
-
-const styles = {
-  nav: {
-    height: "70px",
-    background: "#ffffff",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 25px",
-    borderBottom: "1px solid #e5e7eb",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-  },
-  btn: {
-    padding: "10px 16px",
-    border: "none",
-    borderRadius: "8px",
-    background: "#ef4444",
-    color: "#fff",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
 };
 
 export default Navbar;

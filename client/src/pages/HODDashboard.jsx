@@ -18,6 +18,7 @@ const HODDashboard = () => {
     const loadData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const posterData = await getActivePostersApi(
 
         // Load Posters
         const posterRes = await getActivePostersApi(
@@ -37,6 +38,7 @@ const HODDashboard = () => {
 
         setFiles(repoRes?.data || repoRes || []);
       } catch (error) {
+        console.error("Failed to load data", error);
         console.log("Dashboard Error:", error);
       } finally {
         setLoading(false);
@@ -50,27 +52,33 @@ const HODDashboard = () => {
 
   return (
     <Layout>
-      <h2>HOD Dashboard</h2>
-      <p>Welcome, {user?.name}</p>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">HOD Dashboard</h2>
+      <p className="text-gray-500 mb-8">Welcome, <strong className="text-blue-600">{user?.name}</strong></p>
 
+      <h3 className="mt-[30px] text-xl font-semibold text-gray-800 mb-4">Repository Updates</h3>
       {/* Repository Section */}
       <h3 style={{ marginTop: "30px" }}>Repository Updates</h3>
 
+      <div className="grid gap-4">
       {files.length === 0 ? (
-        <p>No repository files</p>
+        <p className="text-gray-500 italic">No repository files</p>
       ) : (
         files.map((file) => (
-          <div key={file._id} style={styles.card}>
-            <h4>{file.title}</h4>
-            <p>{file.subCategory}</p>
-            <small>
+          <div key={file._id} className="bg-white p-[15px] rounded-[10px] shadow-[0_2px_6px_rgba(0,0,0,0.08)] border border-gray-100">
+            <h4 className="font-semibold text-gray-800 mb-1">{file.title}</h4>
+            <p className="text-sm text-gray-600 mb-1">{file.subCategory}</p>
+            <small className="text-xs text-gray-500">
               {file.department} |{" "}
               {new Date(file.createdAt).toLocaleDateString()}
             </small>
           </div>
         ))
       )}
+      </div>
 
+      <h3 className="mt-[40px] text-xl font-semibold text-gray-800 mb-4">Posters</h3>
+
+      {loading ? <p className="text-gray-500 italic">Loading...</p> : <PosterList posters={posters} />}
       {/* Poster Section */}
       <h3 style={{ marginTop: "40px" }}>Posters</h3>
 

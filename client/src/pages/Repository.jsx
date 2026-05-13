@@ -40,29 +40,29 @@ const Repository = () => {
   });
 
   return (
-    <div style={{ display: "flex" }}>
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
-      <div style={{ flex: 1 }}>
+      <div className="flex-1 flex flex-col">
         <Navbar />
 
-        <div style={{ padding: "20px" }}>
-          <h1>Centralized Repository</h1>
+        <div className="p-5 max-w-[1200px]">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Centralized Repository</h1>
 
           {/* Filters */}
-          <div style={styles.filterRow}>
+          <div className="flex gap-2.5 mb-5 flex-wrap">
             <input
               type="text"
               placeholder="Search file..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={styles.input}
+              className="p-2.5 w-[250px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
 
             <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              style={styles.select}
+              className="p-2.5 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             >
               <option value="all">All Departments</option>
               <option value="computer">Computer</option>
@@ -74,7 +74,7 @@ const Repository = () => {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              style={styles.select}
+              className="p-2.5 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             >
               <option value="all">All Categories</option>
               <option value="academic">Academic</option>
@@ -88,82 +88,37 @@ const Repository = () => {
           </div>
 
           {/* File Cards */}
-          <div style={styles.grid}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[15px]">
             {filteredFiles.map((file) => (
-              <div key={file._id} style={styles.card}>
-                <h3>{file.title}</h3>
-                <p><b>Department:</b> {file.department}</p>
-                <p><b>Category:</b> {file.category}</p>
-                <p>
-                  <b>Date:</b>{" "}
+              <div key={file._id} className="bg-white border border-gray-200 rounded-xl p-[15px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{file.title}</h3>
+                <p className="text-sm text-gray-600 mb-1"><b className="font-semibold text-gray-800">Department:</b> {file.department}</p>
+                <p className="text-sm text-gray-600 mb-1"><b className="font-semibold text-gray-800">Category:</b> {file.category}</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  <b className="font-semibold text-gray-800">Date:</b>{" "}
                   {new Date(file.createdAt).toLocaleDateString()}
                 </p>
 
-                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-  {/* View File */}
-  <a
-  href={`http://localhost:5000/api/files/download/${file._id}`}
-  style={styles.btn}
->
-  Download
-</a>
-</div>
+                <div className="flex gap-2.5 mt-auto pt-2">
+                  {/* View File */}
+                  <a
+                    href={`http://localhost:5000/api/files/download/${file._id}`}
+                    className="inline-block px-[14px] py-2 bg-blue-600 text-white rounded-lg no-underline font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Download
+                  </a>
+                </div>
               </div>
             ))}
           </div>
 
           {filteredFiles.length === 0 && (
-            <p style={{ marginTop: "20px" }}>No files found.</p>
+            <p className="mt-5 text-gray-500 italic">No files found.</p>
           )}
         </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  filterRow: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "20px",
-    flexWrap: "wrap",
-  },
-  input: {
-    padding: "10px",
-    width: "250px",
-  },
-  select: {
-    padding: "10px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "15px",
-  },
-  card: {
-    background: "#fff",
-    border: "1px solid #ddd",
-    borderRadius: "12px",
-    padding: "15px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-  },
-  btn: {
-    display: "inline-block",
-    marginTop: "10px",
-    padding: "8px 14px",
-    background: "#2563eb",
-    color: "#fff",
-    borderRadius: "8px",
-    textDecoration: "none",
-  },
-  downloadBtn: {
-  display: "inline-block",
-  padding: "8px 14px",
-  background: "#16a34a",
-  color: "#fff",
-  borderRadius: "8px",
-  textDecoration: "none",
-},
 };
 
 export default Repository;

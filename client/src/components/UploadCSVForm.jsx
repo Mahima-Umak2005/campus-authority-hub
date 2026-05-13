@@ -42,79 +42,33 @@ const UploadCSVForm = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h3>Bulk Upload Students</h3>
-      <p style={styles.helpText}>
-        Upload a CSV file to add multiple students. Required columns: <strong>name, email, password, department</strong>. Optional: <strong>class</strong>.
+    <div className="mt-10 p-5 border border-gray-300 rounded-lg max-w-[600px] bg-white shadow-sm">
+      <h3 className="text-xl font-bold text-gray-800 mb-2">Bulk Upload Students</h3>
+      <p className="text-gray-500 text-sm mb-4">
+        Upload a CSV file to add multiple students. Required columns: <strong className="text-gray-700">name, email, password, department</strong>. Optional: <strong className="text-gray-700">class</strong>.
         Existing students will be skipped.
       </p>
       
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} className="flex gap-2.5 items-center">
         <input 
           type="file" 
           accept=".csv" 
           onChange={handleFileChange} 
-          style={styles.input} 
+          className="p-2 border border-gray-300 rounded flex-1 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white" 
         />
         <button 
           type="submit" 
           disabled={loading || !file} 
-          style={{...styles.button, opacity: loading || !file ? 0.6 : 1}}
+          className={`p-2.5 px-5 bg-green-600 text-white border-none rounded cursor-pointer font-bold transition-opacity hover:bg-green-700 ${loading || !file ? 'opacity-60 cursor-not-allowed hover:bg-green-600' : 'opacity-100'}`}
         >
           {loading ? "Uploading..." : "Upload CSV"}
         </button>
       </form>
 
-      {message && <p style={styles.success}>{message}</p>}
-      {error && <p style={styles.error}>{error}</p>}
+      {message && <p className="text-green-600 mt-4 font-medium p-2.5 bg-green-50 rounded border border-green-200">{message}</p>}
+      {error && <p className="text-red-500 mt-4 font-medium p-2.5 bg-red-50 rounded border border-red-200">{error}</p>}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    marginTop: "40px",
-    padding: "20px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    maxWidth: "600px",
-    backgroundColor: "#fff",
-  },
-  helpText: {
-    color: "#6b7280",
-    fontSize: "14px",
-    marginBottom: "15px",
-  },
-  form: {
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-  },
-  input: {
-    padding: "8px",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    flex: 1,
-  },
-  button: {
-    padding: "10px 20px",
-    backgroundColor: "#16a34a",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-  success: {
-    color: "green",
-    marginTop: "15px",
-    fontWeight: "500",
-  },
-  error: {
-    color: "red",
-    marginTop: "15px",
-    fontWeight: "500",
-  },
 };
 
 export default UploadCSVForm;

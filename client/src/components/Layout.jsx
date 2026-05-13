@@ -3,11 +3,11 @@ import Navbar from "./Navbar";
 
 const Layout = ({ children }) => {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div style={{ flex: 1 }}>
+      <div className="flex-1 flex flex-col min-w-0">
         <Navbar />
-        <div style={{ padding: "20px" }}>{children}</div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );

@@ -76,25 +76,25 @@ const PosterCard = ({ poster, onDelete, onEdit }) => {
   };
 
   return (
-    <div style={styles.card}>
-      <img src={poster.imageUrl} alt={poster.title} style={styles.image} />
+    <div className="bg-white rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex flex-col h-full border border-gray-100 transition-transform hover:-translate-y-1 hover:shadow-lg">
+      <img src={poster.imageUrl} alt={poster.title} className="w-full h-[180px] object-cover" />
 
-      <div style={{ padding: "12px" }}>
-        <h4>
+      <div className="p-4 flex flex-col flex-1">
+        <h4 className="text-lg font-bold text-gray-800 mb-1">
           {poster.title}
-          {!poster.isActive && <span style={{ color: "red", marginLeft: "10px", fontSize: "14px", fontWeight: "bold" }}>[DELETED]</span>}
+          {!poster.isActive && <span className="text-red-500 ml-2.5 text-sm font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100">[DELETED]</span>}
         </h4>
-        <p>{poster.description}</p>
+        <p className="text-gray-600 text-sm mb-4 flex-1 line-clamp-3">{poster.description}</p>
 
-        <div style={styles.actions}>
+        <div className="flex gap-2.5 mt-auto pt-3 border-t border-gray-100">
           {canEdit && (
-            <button style={styles.editBtn} onClick={handleEdit}>
+            <button className="flex-1 p-2 bg-blue-600 text-white border-none rounded-lg cursor-pointer font-semibold text-sm transition-colors hover:bg-blue-700" onClick={handleEdit}>
               Edit
             </button>
           )}
 
           {canEdit && (
-            <button style={styles.deleteBtn} onClick={handleDelete}>
+            <button className="flex-1 p-2 bg-red-500 text-white border-none rounded-lg cursor-pointer font-semibold text-sm transition-colors hover:bg-red-600" onClick={handleDelete}>
               Delete
             </button>
           )}
@@ -102,41 +102,6 @@ const PosterCard = ({ poster, onDelete, onEdit }) => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  card: {
-    background: "#fff",
-    borderRadius: "12px",
-    overflow: "hidden",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  },
-  image: {
-    width: "100%",
-    height: "180px",
-    objectFit: "cover",
-  },
-  actions: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "12px",
-  },
-  editBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-  },
-  deleteBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-  },
 };
 
 export default PosterCard;

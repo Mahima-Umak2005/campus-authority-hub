@@ -74,18 +74,18 @@ const Posters = () => {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
-        <h2>Upload Poster</h2>
+    <div className="p-10 flex justify-center bg-gray-50 min-h-screen w-full">
+      <div className="w-full max-w-[500px] bg-white p-[30px] rounded-[14px] shadow-[0_8px_20px_rgba(0,0,0,0.1)] h-fit">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Upload Poster</h2>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col">
           <input
             type="text"
             name="title"
             placeholder="Poster Title"
             value={formData.title}
             onChange={handleChange}
-            style={styles.input}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             required
           />
 
@@ -94,7 +94,7 @@ const Posters = () => {
             placeholder="Description"
             value={formData.description}
             onChange={handleChange}
-            style={styles.textarea}
+            className="w-full p-3 min-h-[100px] mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y"
             required
           />
 
@@ -102,7 +102,7 @@ const Posters = () => {
             type="file"
             name="poster"
             onChange={handleChange}
-            style={styles.input}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             required
           />
 
@@ -110,7 +110,7 @@ const Posters = () => {
             name="priority"
             value={formData.priority}
             onChange={handleChange}
-            style={styles.input}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="low">Low Priority</option>
             <option value="medium">Medium Priority</option>
@@ -122,7 +122,7 @@ const Posters = () => {
             value={user?.role === "hod" || user?.role === "faculty" ? user?.department : formData.targetDepartment}
             onChange={handleChange}
             disabled={user?.role === "hod" || user?.role === "faculty"}
-            style={styles.input}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-500"
           >
             <option value="all">All Departments</option>
             <option value="computer">Computer</option>
@@ -136,68 +136,20 @@ const Posters = () => {
             name="expiryDate"
             value={formData.expiryDate}
             onChange={handleChange}
-            style={styles.input}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
             required
           />
 
-          <button style={styles.button} type="submit">
+          <button className="w-full p-3 bg-blue-600 text-white border-none rounded-lg font-bold cursor-pointer transition-colors hover:bg-blue-700 mt-2" type="submit">
             {loading ? "Uploading..." : "Upload Poster"}
           </button>
         </form>
 
-        {message && <p style={styles.success}>{message}</p>}
-        {error && <p style={styles.error}>{error}</p>}
+        {message && <p className="text-green-600 mt-[15px] text-center font-medium p-2 bg-green-50 rounded border border-green-100">{message}</p>}
+        {error && <p className="text-red-500 mt-[15px] text-center font-medium p-2 bg-red-50 rounded border border-red-100">{error}</p>}
       </div>
     </div>
   );
-};
-
-const styles = {
-  wrapper: {
-    padding: "40px",
-    display: "flex",
-    justifyContent: "center",
-  },
-  card: {
-    width: "500px",
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "14px",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-  },
-  input: {
-    width: "100%",
-    padding: "12px",
-    marginBottom: "15px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-  },
-  textarea: {
-    width: "100%",
-    padding: "12px",
-    minHeight: "100px",
-    marginBottom: "15px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-  },
-  button: {
-    width: "100%",
-    padding: "12px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  success: {
-    color: "green",
-    marginTop: "15px",
-  },
-  error: {
-    color: "red",
-    marginTop: "15px",
-  },
 };
 
 export default Posters;
