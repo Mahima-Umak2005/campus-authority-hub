@@ -12,7 +12,6 @@ const HODDashboard = () => {
 
   const [posters, setPosters] = useState([]);
   const [files, setFiles] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,27 +19,35 @@ const HODDashboard = () => {
       try {
         const token = localStorage.getItem("token");
         const posterData = await getActivePostersApi(
+
+        // Load Posters
+        const posterRes = await getActivePostersApi(
           "hod",
           user?.department || "all",
           token
         );
 
-        setPosters(posterData.data);
+        setPosters(posterRes?.data || []);
 
-        const repoData = await getDashboardFiles(
+        // Load Repository Files
+        const repoRes = await getDashboardFiles(
           "hod",
-          user?.department || "all"
+          user?.department || "all",
+          token
         );
 
-        setFiles(repoData);
+        setFiles(repoRes?.data || repoRes || []);
       } catch (error) {
         console.error("Failed to load data", error);
+        console.log("Dashboard Error:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) loadData();
+    if (user) {
+      loadData();
+    }
   }, [user]);
 
   return (
@@ -49,6 +56,8 @@ const HODDashboard = () => {
       <p className="text-gray-500 mb-8">Welcome, <strong className="text-blue-600">{user?.name}</strong></p>
 
       <h3 className="mt-[30px] text-xl font-semibold text-gray-800 mb-4">Repository Updates</h3>
+      {/* Repository Section */}
+      <h3 style={{ marginTop: "30px" }}>Repository Updates</h3>
 
       <div className="grid gap-4">
       {files.length === 0 ? (
@@ -70,8 +79,37 @@ const HODDashboard = () => {
       <h3 className="mt-[40px] text-xl font-semibold text-gray-800 mb-4">Posters</h3>
 
       {loading ? <p className="text-gray-500 italic">Loading...</p> : <PosterList posters={posters} />}
+      {/* Poster Section */}
+      <h3 style={{ marginTop: "40px" }}>Posters</h3>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : posters.length === 0 ? (
+        <p>No posters available</p>
+      ) : (
+        <PosterList posters={posters} />
+      )}
     </Layout>
   );
+};
+
+const styles = {
+  btn: {
+    padding: "10px 15px",
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+
+  card: {
+    background: "#fff",
+    padding: "15px",
+    borderRadius: "10px",
+    marginBottom: "10px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+  },
 };
 
 export default HODDashboard;
