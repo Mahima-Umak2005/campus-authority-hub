@@ -61,6 +61,12 @@ const Sidebar = () => {
           </Link>
         )}
 
+        {user?.role === "hod" && (
+          <Link to="/department-analytics" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Department Analytics
+          </Link>
+        )}
+
         <Link to="/profile" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
           Profile
         </Link>

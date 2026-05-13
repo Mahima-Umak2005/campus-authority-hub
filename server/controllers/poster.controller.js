@@ -92,12 +92,36 @@ const isVisibleToUser = (poster, role, department) => {
   return audienceAllowed && departmentAllowed;
 };
 
+const addReadStatus = (posters, userId) => {
+  return posters.map((poster) => {
+    const plainPoster = poster.toObject ? poster.toObject() : poster;
+    const readEntry = (plainPoster.readBy || []).find(
+      (item) => item.user?.toString() === userId.toString()
+    );
+
+    return {
+      ...plainPoster,
+      isRead: Boolean(readEntry),
+      readAt: readEntry?.readAt || null,
+    };
+  });
+};
+
+const sortNotices = (a, b) => {
+  const aPinned = a.isPinned || a.priority === "high";
+  const bPinned = b.isPinned || b.priority === "high";
+
+  if (aPinned !== bPinned) return aPinned ? -1 : 1;
+
+  return new Date(b.createdAt) - new Date(a.createdAt);
+};
+
 const createPoster = async (req, res) => {
   try {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    const { title, description, priority, publishDate, expiryDate } = req.body;
+    const { title, description, priority, publishDate, expiryDate, isPinned } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "Poster file is required" });
@@ -119,6 +143,7 @@ const createPoster = async (req, res) => {
       targetAudience,
       targetDepartments,
       priority,
+      isPinned: isPinned === "true" || priority === "high",
       publishDate: publishDate || new Date(),
       expiryDate,
     });
@@ -147,7 +172,7 @@ const getActivePosters = async (req, res) => {
     res.json(
       posters.filter((poster) =>
         isVisibleToUser(poster, role, department)
-      )
+      ).sort(sortNotices)
     );
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -180,7 +205,7 @@ const deletePoster = async (req, res) => {
 };
 const updatePoster = async (req, res) => {
   try {
-    const { title, description, priority, publishDate, expiryDate } = req.body;
+    const { title, description, priority, publishDate, expiryDate, isPinned } = req.body;
 
     const poster = await Poster.findById(req.params.id);
 
@@ -200,6 +225,9 @@ const updatePoster = async (req, res) => {
     poster.title = title || poster.title;
     poster.description = description || poster.description;
     poster.priority = priority || poster.priority;
+    if (typeof isPinned !== "undefined") {
+      poster.isPinned = isPinned === true || isPinned === "true";
+    }
     poster.publishDate = publishDate || poster.publishDate;
     poster.expiryDate = expiryDate || poster.expiryDate;
 
@@ -242,8 +270,101 @@ const getDashboardPosters = async (req, res) => {
       };
     }
     
-    const posters = await Poster.find(query).sort({ createdAt: -1 });
+    const posters = await Poster.find(query).sort({ isPinned: -1, createdAt: -1 });
     res.json(posters);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getStudentNotices = async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({ message: "Only students can access this notice feed" });
+    }
+
+    const now = new Date();
+    const posters = await Poster.find({
+      isActive: true,
+      publishDate: { $lte: now },
+    }).sort({ isPinned: -1, createdAt: -1 });
+
+    const visiblePosters = posters
+      .filter((poster) => isVisibleToUser(poster, "student", req.user.department))
+      .sort(sortNotices);
+
+    const noticesWithReadStatus = addReadStatus(visiblePosters, req.user._id);
+
+    res.json({
+      active: noticesWithReadStatus.filter(
+        (poster) => !poster.expiryDate || new Date(poster.expiryDate) >= now
+      ),
+      history: noticesWithReadStatus.filter(
+        (poster) => poster.isRead || (poster.expiryDate && new Date(poster.expiryDate) < now)
+      ),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getDepartmentPosters = async (req, res) => {
+  try {
+    if (!["hod", "principal", "chairman", "admin"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Not authorized to view department posters" });
+    }
+
+    const now = new Date();
+    const department =
+      req.user.role === "hod" ? req.user.department : req.query.department || "all";
+    const departmentFilter =
+      department === "all"
+        ? {}
+        : { targetDepartments: { $in: [department, "all"] } };
+
+    const posters = await Poster.find({
+      isActive: true,
+      publishDate: { $lte: now },
+      expiryDate: { $gte: now },
+      ...departmentFilter,
+    }).sort({ isPinned: -1, createdAt: -1 });
+
+    res.json(posters.sort(sortNotices));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const markPosterAsRead = async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({ message: "Only students can mark notices as read" });
+    }
+
+    const poster = await Poster.findOne({
+      _id: req.params.id,
+      isActive: true,
+      publishDate: { $lte: new Date() },
+    });
+
+    if (!poster) {
+      return res.status(404).json({ message: "Poster not found" });
+    }
+
+    if (!isVisibleToUser(poster, "student", req.user.department)) {
+      return res.status(403).json({ message: "You cannot access this notice" });
+    }
+
+    const alreadyRead = poster.readBy.some(
+      (item) => item.user.toString() === req.user._id.toString()
+    );
+
+    if (!alreadyRead) {
+      poster.readBy.push({ user: req.user._id, readAt: new Date() });
+      await poster.save();
+    }
+
+    res.json({ message: "Notice marked as read" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -255,4 +376,7 @@ module.exports = {
   deletePoster,
   updatePoster,
   getDashboardPosters,
+  getStudentNotices,
+  getDepartmentPosters,
+  markPosterAsRead,
 };

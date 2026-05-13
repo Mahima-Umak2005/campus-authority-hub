@@ -20,15 +20,30 @@ const getDashboardStats = async (req, res) => {
       ? { department: { $in: [department, "all"] } }
       : {};
 
+    const departmentPosterFilter = isDepartmentRole
+      ? { targetDepartments: { $in: [department, "all"] } }
+      : {};
+
     const posterFilter = {
       isActive: true,
+      publishDate: { $lte: now },
       expiryDate: { $gte: now },
-      ...(isDepartmentRole
-        ? { targetDepartments: { $in: [department, "all"] } }
-        : {}),
+      ...departmentPosterFilter,
     };
 
-    const [totalUsers, totalFiles, activePosters, departments] =
+    const [
+      totalUsers,
+      totalFiles,
+      activePosters,
+      departments,
+      totalStudents,
+      totalFaculty,
+      totalHods,
+      scheduledPosters,
+      expiredPosters,
+      deletedPosters,
+      departmentPosters,
+    ] =
       await Promise.all([
         User.countDocuments(userFilter),
         File.countDocuments(fileFilter),
@@ -36,13 +51,44 @@ const getDashboardStats = async (req, res) => {
         User.distinct("department", {
           department: { $nin: ["all", null, ""] },
         }),
+        User.countDocuments({ ...userFilter, role: "student" }),
+        User.countDocuments({ ...userFilter, role: "faculty" }),
+        User.countDocuments({ ...userFilter, role: "hod" }),
+        Poster.countDocuments({
+          isActive: true,
+          publishDate: { $gt: now },
+          ...departmentPosterFilter,
+        }),
+        Poster.countDocuments({
+          isActive: true,
+          expiryDate: { $lt: now },
+          ...departmentPosterFilter,
+        }),
+        Poster.countDocuments({
+          isActive: false,
+          ...departmentPosterFilter,
+        }),
+        Poster.find(departmentPosterFilter).select("readBy").lean(),
       ]);
+
+    const readMarks = departmentPosters.reduce(
+      (total, poster) => total + (poster.readBy?.length || 0),
+      0
+    );
 
     res.json({
       totalUsers,
       totalFiles,
       activePosters,
       departments: departments.length,
+      totalStudents,
+      totalFaculty,
+      totalHods,
+      scheduledPosters,
+      expiredPosters,
+      deletedPosters,
+      totalDepartmentPosters: departmentPosters.length,
+      readMarks,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -44,7 +44,11 @@ const Login = () => {
     try {
       const { data } = await loginApi(formData);
       login(data.token, data);
-      redirectUser(data.role);
+      if (data.forcePasswordChange) {
+        navigate("/change-password", { replace: true });
+      } else {
+        redirectUser(data.role);
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

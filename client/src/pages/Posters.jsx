@@ -8,6 +8,7 @@ const Posters = () => {
     description: "",
     poster: null,
     priority: "medium",
+    isPinned: false,
     publishDate: "",
     expiryDate: "",
     visibilityMode: "all_departments",
@@ -26,6 +27,8 @@ const Posters = () => {
 
     if (name === "poster") {
       setFormData({ ...formData, poster: files[0] });
+    } else if (e.target.type === "checkbox") {
+      setFormData({ ...formData, [name]: e.target.checked });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -89,6 +92,7 @@ const Posters = () => {
       data.append("description", formData.description);
       data.append("poster", formData.poster);
       data.append("priority", formData.priority);
+      data.append("isPinned", formData.isPinned || formData.priority === "high");
       data.append("publishDate", formData.publishDate || new Date().toISOString());
       data.append("expiryDate", formData.expiryDate);
 
@@ -112,6 +116,7 @@ const Posters = () => {
         description: "",
         poster: null,
         priority: "medium",
+        isPinned: false,
         publishDate: "",
         expiryDate: "",
         visibilityMode: "all_departments",
@@ -168,6 +173,16 @@ const Posters = () => {
             <option value="medium">Medium Priority</option>
             <option value="high">High Priority</option>
           </select>
+
+          <label className="mb-[15px] flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm font-medium text-gray-700">
+            <input
+              type="checkbox"
+              name="isPinned"
+              checked={formData.isPinned}
+              onChange={handleChange}
+            />
+            Pin as important notice
+          </label>
 
           <label className="mb-1 text-sm font-semibold text-gray-700">
             Publish Date

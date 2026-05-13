@@ -27,3 +27,28 @@ export const getDashboardPostersApi = (token) =>
       Authorization: `Bearer ${token}`,
     },
   });
+
+export const getStudentNoticesApi = (token) =>
+  API.get("/student", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+export const getDepartmentPostersApi = (token, department = "all") =>
+  API.get(`/department?department=${department}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+export const markPosterAsReadApi = (id, token) =>
+  API.patch(
+    `/${id}/read`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );

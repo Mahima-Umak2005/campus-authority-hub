@@ -25,9 +25,19 @@ const posterSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
+    isPinned: { type: Boolean, default: false },
     publishDate: { type: Date, default: Date.now },
     expiryDate: { type: Date, required: true },
     isActive: { type: Boolean, default: true },
+    readBy: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

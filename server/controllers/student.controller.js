@@ -139,6 +139,7 @@ const uploadStudentsCSV = async (req, res) => {
           collegeName,
           collegeCode,
           collegeAddress,
+          forcePasswordChange: true,
         });
 
         addedCount++;
@@ -251,6 +252,11 @@ const deleteDepartmentStudent = async (req, res) => {
 const resetDepartmentStudentPassword = async (req, res) => {
   try {
     const department = normalizeDepartment(req.user.department);
+    const newPassword = req.body.password?.trim() || "12345";
+
+    if (newPassword.length < 5) {
+      return res.status(400).json({ message: "Password must be at least 5 characters" });
+    }
 
     const student = await User.findOne({
       _id: req.params.id,
@@ -262,10 +268,13 @@ const resetDepartmentStudentPassword = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    student.password = "12345";
+    student.password = newPassword;
+    student.forcePasswordChange = true;
     await student.save();
 
-    return res.json({ message: "Password reset to 12345" });
+    return res.json({
+      message: `Password reset to ${newPassword}. Student must change it after login.`,
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

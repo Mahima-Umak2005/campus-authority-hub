@@ -35,10 +35,10 @@ export const deleteDepartmentStudentApi = async (id, token) => {
   return response.data;
 };
 
-export const resetDepartmentStudentPasswordApi = async (id, token) => {
+export const resetDepartmentStudentPasswordApi = async (id, token, password = "12345") => {
   const response = await axios.patch(
     `${API_URL}/${id}/reset-password`,
-    {},
+    { password },
     authConfig(token)
   );
   return response.data;

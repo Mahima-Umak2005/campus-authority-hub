@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema(
     collegeCode: { type: String, sparse: true },
     collegeAddress: { type: String },
     className: { type: String },
+    forcePasswordChange: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

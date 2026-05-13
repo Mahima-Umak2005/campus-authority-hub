@@ -86,13 +86,23 @@ const ManageStudents = () => {
   };
 
   const handleResetPassword = async (id) => {
-    const confirmed = window.confirm("Reset password to 12345?");
+    const password = prompt("Enter new temporary password", "12345");
+    if (!password) return;
+
+    if (password.length < 5) {
+      setError("Password must be at least 5 characters");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Reset this student's password and force password change on next login?"
+    );
     if (!confirmed) return;
 
     try {
       const token = localStorage.getItem("token");
-      const data = await resetDepartmentStudentPasswordApi(id, token);
-      showMessage(data.message || "Password reset to 12345");
+      const data = await resetDepartmentStudentPasswordApi(id, token, password);
+      showMessage(data.message || "Password reset successfully");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reset password");
     }

@@ -13,6 +13,9 @@ const {
   deletePoster,
   updatePoster,
   getDashboardPosters,
+  getStudentNotices,
+  getDepartmentPosters,
+  markPosterAsRead,
 } = require("../controllers/poster.controller");
 
 // Create Poster
@@ -29,6 +32,9 @@ router.get("/active", getActivePosters);
 
 // Get Dashboard Posters (Protected, returns all for Admin/Principal, and uploader's soft-deleted ones)
 router.get("/dashboard", protect, getDashboardPosters);
+router.get("/student", protect, getStudentNotices);
+router.get("/department", protect, getDepartmentPosters);
+router.patch("/:id/read", protect, markPosterAsRead);
 
 // Delete Poster
 router.delete(

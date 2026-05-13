@@ -16,6 +16,8 @@ import UploadRepository from "../pages/UploadRepository";
 import ManagePosters from "../pages/ManagePosters";
 import Profile from "../pages/Profile";
 import ManageStudents from "../pages/ManageStudents";
+import ChangePassword from "../pages/ChangePassword";
+import DepartmentAnalytics from "../pages/DepartmentAnalytics";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -96,6 +98,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/department-analytics"
+        element={
+          <ProtectedRoute allowedRoles={["hod"]}>
+            <DepartmentAnalytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
   path="/repository"
   element={
     <ProtectedRoute
@@ -121,6 +131,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["chairman", "principal", "hod", "faculty", "admin", "student"]}>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute allowedRoles={["chairman", "principal", "hod", "faculty", "admin", "student"]}>
+            <ChangePassword />
           </ProtectedRoute>
         }
       />
