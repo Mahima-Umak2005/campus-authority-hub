@@ -4,6 +4,82 @@ const streamifier = require("streamifier");
 const cloudinary = require("../config/cloudinary");
 const File = require("../models/File");
 
+const APPROVER_ROLES = ["chairman", "principal", "admin"];
+const DEPARTMENT_ROLES = ["hod", "faculty", "student"];
+const VALID_DEPARTMENTS = ["computer", "civil", "mechanical", "electrical", "all"];
+const VALID_CATEGORIES = [
+  "academic",
+  "student",
+  "faculty",
+  "quality",
+  "activities",
+  "administration",
+  "confidential",
+];
+
+const canApproveFiles = (user) => APPROVER_ROLES.includes(user.role);
+
+const canAccessFile = (file, user) => {
+  if (!user) return false;
+  if (canApproveFiles(user)) return true;
+
+  const uploadedBy = file.uploadedBy?._id || file.uploadedBy;
+  const isUploader = uploadedBy?.toString() === user._id.toString();
+  if (isUploader) return true;
+
+  const effectiveStatus = file.approvalStatus || "approved";
+  if (effectiveStatus !== "approved") return false;
+  if (!file.accessRoles?.includes(user.role)) return false;
+  if (file.isConfidential && !["chairman", "principal", "admin", "hod"].includes(user.role)) {
+    return false;
+  }
+
+  return file.department === "all" || file.department === user.department;
+};
+
+const buildRepositoryFilter = (req) => {
+  const { search, department, category, status } = req.query;
+  const filter = {};
+
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+      { subCategory: { $regex: search, $options: "i" } },
+      { tags: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  if (department && department !== "all") filter.department = department;
+  if (category && category !== "all") filter.category = category;
+  if (status && status !== "all") {
+    filter.approvalStatus =
+      status === "approved" ? { $in: ["approved", null] } : status;
+  }
+
+  if (!canApproveFiles(req.user)) {
+    const visibilityFilter = {
+      $or: [
+        {
+          approvalStatus: { $in: ["approved", null] },
+          accessRoles: req.user.role,
+          department: { $in: [req.user.department, "all"] },
+        },
+        { uploadedBy: req.user._id },
+      ],
+    };
+
+    if (filter.$or) {
+      filter.$and = [{ $or: filter.$or }, visibilityFilter];
+      delete filter.$or;
+    } else {
+      Object.assign(filter, visibilityFilter);
+    }
+  }
+
+  return filter;
+};
+
 // ======================================
 // Detect Resource Type
 // ======================================
@@ -55,7 +131,6 @@ exports.uploadFile = async (req, res) => {
       category,
       subCategory,
       department,
-      uploadedBy,
       showOnDashboard,
       isConfidential,
       accessRoles,
@@ -63,22 +138,48 @@ exports.uploadFile = async (req, res) => {
       tags,
     } = req.body;
 
-    if (!title || !category || !subCategory || !department || !uploadedBy) {
+    const finalDepartment = DEPARTMENT_ROLES.includes(req.user.role)
+      ? req.user.department
+      : department;
+    const finalSubCategory = subCategory?.trim() || "General";
+    const missingFields = [];
+
+    if (!title?.trim()) missingFields.push("title");
+    if (!category?.trim()) missingFields.push("category");
+    if (!finalDepartment?.trim()) missingFields.push("department");
+
+    if (missingFields.length) {
       return res.status(400).json({
         success: false,
-        message: "Required fields missing",
+        message: `Required fields missing: ${missingFields.join(", ")}`,
       });
     }
+
+    if (!VALID_CATEGORIES.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category selected",
+      });
+    }
+
+    if (!VALID_DEPARTMENTS.includes(finalDepartment)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid department selected",
+      });
+    }
+
+    const approvalStatus = canApproveFiles(req.user) ? "approved" : "pending";
 
     const result = await uploadToCloudinary(req.file, "campus_repository");
 
     const newFile = new File({
-      title,
+      title: title.trim(),
       description,
       category,
-      subCategory,
-      department,
-      uploadedBy,
+      subCategory: finalSubCategory,
+      department: finalDepartment,
+      uploadedBy: req.user._id,
       fileUrl: result.secure_url,
       publicId: result.public_id,
       fileType: req.file.mimetype,
@@ -88,6 +189,9 @@ exports.uploadFile = async (req, res) => {
       accessRoles: accessRoles
         ? accessRoles.split(",").map((r) => r.trim())
         : ["chairman", "principal", "hod", "faculty"],
+      approvalStatus,
+      approvedBy: approvalStatus === "approved" ? req.user._id : undefined,
+      approvedAt: approvalStatus === "approved" ? new Date() : undefined,
       academicYear,
       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
     });
@@ -96,7 +200,10 @@ exports.uploadFile = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "File uploaded successfully",
+      message:
+        approvalStatus === "approved"
+          ? "File uploaded successfully"
+          : "File uploaded and sent for approval",
       file: newFile,
     });
   } catch (error) {
@@ -114,11 +221,12 @@ exports.uploadFile = async (req, res) => {
 // ======================================
 exports.getFiles = async (req, res) => {
   try {
-    const files = await File.find()
+    const files = await File.find(buildRepositoryFilter(req))
       .populate("uploadedBy", "name role department")
+      .populate("approvedBy", "name role")
       .sort({ createdAt: -1 });
 
-    res.json(files);
+    res.json(files.filter((file) => canAccessFile(file, req.user)));
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -132,9 +240,14 @@ exports.getFiles = async (req, res) => {
 // ======================================
 exports.getDashboardFiles = async (req, res) => {
   try {
-    const { role, department } = req.query;
+    const role = req.user?.role || req.query.role;
+    const department = req.user?.department || req.query.department;
 
-    let filter = { showOnDashboard: true };
+    let filter = {
+      showOnDashboard: true,
+      approvalStatus: { $in: ["approved", null] },
+      accessRoles: role,
+    };
 
     if (role !== "principal" && role !== "chairman") {
       filter.$or = [{ department: department }, { department: "all" }];
@@ -156,11 +269,12 @@ exports.getDashboardFiles = async (req, res) => {
 // ======================================
 exports.getRepositoryStructure = async (req, res) => {
   try {
-    const files = await File.find();
+    const files = await File.find(buildRepositoryFilter(req));
+    const visibleFiles = files.filter((file) => canAccessFile(file, req.user));
 
     const structure = {};
 
-    files.forEach((file) => {
+    visibleFiles.forEach((file) => {
       if (!structure[file.category]) {
         structure[file.category] = {};
       }
@@ -194,6 +308,15 @@ exports.downloadFile = async (req, res) => {
       });
     }
 
+    if (!canAccessFile(file, req.user)) {
+      return res.status(403).json({
+        message: "You do not have access to this file",
+      });
+    }
+
+    file.downloadCount += 1;
+    await file.save();
+
     const resourceType = getResourceType(file.fileType);
 
     const url = cloudinary.url(file.publicId, {
@@ -205,6 +328,54 @@ exports.downloadFile = async (req, res) => {
     return res.redirect(url);
   } catch (error) {
     res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ======================================
+// Approve / Reject File
+// ======================================
+exports.updateApprovalStatus = async (req, res) => {
+  try {
+    if (!canApproveFiles(req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to approve repository files",
+      });
+    }
+
+    const { status, rejectionReason = "" } = req.body;
+    if (!["approved", "rejected", "pending"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid approval status",
+      });
+    }
+
+    const file = await File.findById(req.params.id);
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found",
+      });
+    }
+
+    file.approvalStatus = status;
+    file.rejectionReason = status === "rejected" ? rejectionReason : "";
+    file.approvedBy = status === "approved" ? req.user._id : undefined;
+    file.approvedAt = status === "approved" ? new Date() : undefined;
+
+    await file.save();
+
+    res.json({
+      success: true,
+      message: `File ${status} successfully`,
+      file,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
       message: error.message,
     });
   }

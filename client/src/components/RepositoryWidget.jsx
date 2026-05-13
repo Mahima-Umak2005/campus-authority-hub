@@ -19,7 +19,7 @@ const RepositoryWidget = () => {
         user.department
       );
 
-      setFiles(res.data);
+      setFiles(res || []);
     } catch (error) {
       console.log(error);
     }

@@ -100,6 +100,28 @@ const fileSchema = new mongoose.Schema(
       default: ["chairman", "principal", "hod", "faculty"],
     },
 
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    approvedAt: {
+      type: Date,
+    },
+    rejectionReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    downloadCount: {
+      type: Number,
+      default: 0,
+    },
+
     // Tags
     tags: {
       type: [String],
