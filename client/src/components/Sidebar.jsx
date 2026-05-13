@@ -9,7 +9,15 @@ const Sidebar = () => {
       ? "/faculty-dashboard"
       : user?.role === "hod"
       ? "/hod-dashboard"
+      : user?.role === "student"
+      ? "/student-dashboard"
       : "/principal-dashboard";
+
+  const canUpload = user?.role !== "student";
+  const canManagePosters =
+    user?.role === "chairman" ||
+    user?.role === "principal" ||
+    user?.role === "hod";
 
   return (
     <div className="w-[250px] min-h-screen bg-slate-900 text-white p-5 flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
@@ -25,17 +33,23 @@ const Sidebar = () => {
           Repository
         </Link>
 
-        <Link to="/repository/upload" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
-          Upload File
-        </Link>
+        {canUpload && (
+          <Link to="/repository/upload" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Upload File
+          </Link>
+        )}
 
-        <Link to="/posters/new" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
-          Upload Poster
-        </Link>
+        {canUpload && (
+          <Link to="/posters/new" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Upload Poster
+          </Link>
+        )}
 
-        <Link to="/manage-posters" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
-          Manage Posters
-        </Link>
+        {canManagePosters && (
+          <Link to="/manage-posters" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Manage Posters
+          </Link>
+        )}
 
         <Link to="/profile" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
           Profile

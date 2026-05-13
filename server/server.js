@@ -12,6 +12,7 @@ const authRoutes = require("./routes/auth.routes");
 const posterRoutes = require("./routes/poster.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const fileRoutes = require("./routes/file.routes");
+const studentRoutes = require("./routes/student.routes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posters", posterRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/students", studentRoutes);
 
 app.get("/", (req, res) => {
   res.send("Campus Authority Hub API Running...");

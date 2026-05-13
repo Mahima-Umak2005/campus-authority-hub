@@ -8,7 +8,7 @@ const UploadCSVForm = () => {
   const [error, setError] = useState("");
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setFile(e.target.files?.[0] || null);
     setMessage("");
     setError("");
   };
@@ -30,12 +30,16 @@ const UploadCSVForm = () => {
     try {
       const token = localStorage.getItem("token");
       const data = await uploadStudentsCSVApi(formData, token);
-      setMessage(data.message);
+      setMessage(data.message || "CSV uploaded successfully.");
       setFile(null);
       // Reset file input
       e.target.reset();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to upload CSV file.");
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to upload CSV file."
+      );
     } finally {
       setLoading(false);
     }
@@ -45,11 +49,11 @@ const UploadCSVForm = () => {
     <div className="mt-10 p-5 border border-gray-300 rounded-lg max-w-[600px] bg-white shadow-sm">
       <h3 className="text-xl font-bold text-gray-800 mb-2">Bulk Upload Students</h3>
       <p className="text-gray-500 text-sm mb-4">
-        Upload a CSV file to add multiple students. Required columns: <strong className="text-gray-700">name, email, password, department</strong>. Optional: <strong className="text-gray-700">class</strong>.
-        Existing students will be skipped.
+        Upload a CSV file to add students for your department. Required columns: <strong className="text-gray-700">name, email, department</strong>. Optional: <strong className="text-gray-700">class</strong>.
+        Every student gets the default password <strong className="text-gray-700">12345</strong>.
       </p>
       
-      <form onSubmit={handleSubmit} className="flex gap-2.5 items-center">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <input 
           type="file" 
           accept=".csv" 
@@ -64,6 +68,12 @@ const UploadCSVForm = () => {
           {loading ? "Uploading..." : "Upload CSV"}
         </button>
       </form>
+
+      {file && (
+        <p className="mt-3 text-sm text-gray-500">
+          Selected file: <span className="font-medium text-gray-700">{file.name}</span>
+        </p>
+      )}
 
       {message && <p className="text-green-600 mt-4 font-medium p-2.5 bg-green-50 rounded border border-green-200">{message}</p>}
       {error && <p className="text-red-500 mt-4 font-medium p-2.5 bg-red-50 rounded border border-red-200">{error}</p>}

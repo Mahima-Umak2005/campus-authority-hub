@@ -81,40 +81,40 @@ const HODDashboard = () => {
 
   return (
     <Layout>
+      {/* Welcome Section */}
       <div className="mb-8">
-        <div className="mb-2 flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-2">
           <i className="fas fa-chalkboard-user text-2xl text-blue-600"></i>
           <h2 className="text-2xl font-bold text-gray-800">HOD Dashboard</h2>
         </div>
         <p className="text-gray-500">
-          Welcome back,{" "}
-          <span className="font-semibold text-blue-600">{user?.name}</span>
+          Welcome back, <span className="font-semibold text-blue-600">{user?.name}</span>
         </p>
       </div>
 
+      {/* Loading & Error States */}
       {loading && (
         <div className="flex items-center justify-center py-8">
-          <i className="fas fa-spinner fa-spin mr-2 text-2xl text-blue-500"></i>
+          <i className="fas fa-spinner fa-spin text-blue-500 text-2xl mr-2"></i>
           <span className="text-gray-500">Loading dashboard data...</span>
         </div>
       )}
-
       {statsError && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
           <i className="fas fa-exclamation-circle text-red-500"></i>
-          <p className="text-sm text-red-600">{statsError}</p>
+          <p className="text-red-600 text-sm">{statsError}</p>
         </div>
       )}
-
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
           <i className="fas fa-exclamation-triangle text-red-500"></i>
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
 
+      {/* Statistics Cards */}
       {stats && (
-        <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
           <StatCard
             title="Total Users"
             value={stats.totalUsers ?? 0}
@@ -142,12 +142,11 @@ const HODDashboard = () => {
         </div>
       )}
 
+      {/* Posters Section */}
       <div className="mb-10">
-        <div className="mb-5 flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-5">
           <i className="fas fa-images text-xl text-blue-600"></i>
-          <h3 className="text-xl font-semibold text-gray-800">
-            Uploaded Posters
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-800">Uploaded Posters</h3>
         </div>
         {posterLoading ? (
           <div className="flex items-center gap-2 text-gray-500">
@@ -159,8 +158,9 @@ const HODDashboard = () => {
         )}
       </div>
 
+      {/* Bulk Student Upload Section */}
       <div className="mb-10">
-        <div className="mb-5 flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-5">
           <i className="fas fa-users text-xl text-purple-600"></i>
           <h3 className="text-xl font-semibold text-gray-800">
             Bulk Upload Students
@@ -169,52 +169,50 @@ const HODDashboard = () => {
         <UploadCSVForm />
       </div>
 
+      {/* Repository Files Section */}
       <div className="mb-10">
-        <div className="mb-5 flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-5">
           <i className="fas fa-folder-open text-xl text-emerald-600"></i>
-          <h3 className="text-xl font-semibold text-gray-800">
-            Repository Files
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-800">Repository Files</h3>
         </div>
-
         {repoLoading ? (
           <div className="flex items-center gap-2 text-gray-500">
             <i className="fas fa-spinner fa-spin"></i>
             <span>Loading repository files...</span>
           </div>
         ) : repoFiles.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 py-8 text-center">
-            <i className="fas fa-folder-open mb-2 text-4xl text-gray-300"></i>
+          <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
+            <i className="fas fa-folder-open text-4xl text-gray-300 mb-2"></i>
             <p className="text-gray-500">No files available in repository.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {repoFiles.map((file) => (
               <div
                 key={file._id}
-                className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
               >
                 <div className="p-5">
-                  <div className="mb-3 flex items-start justify-between">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                        <i className="fas fa-file-pdf text-lg text-blue-600"></i>
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <i className="fas fa-file-pdf text-blue-600 text-lg"></i>
                       </div>
-                      <h4 className="line-clamp-1 font-semibold text-gray-800">
+                      <h4 className="font-semibold text-gray-800 line-clamp-1">
                         {file.title}
                       </h4>
                     </div>
                   </div>
-                  <div className="mb-4 space-y-2">
-                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                  <div className="space-y-2 mb-4">
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
                       <i className="fas fa-tag text-xs text-gray-400"></i>
                       {file.category} / {file.subCategory}
                     </p>
-                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
                       <i className="fas fa-building text-xs text-gray-400"></i>
                       {file.department}
                     </p>
-                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
                       <i className="fas fa-calendar-alt text-xs text-gray-400"></i>
                       {new Date(file.createdAt).toLocaleDateString()}
                     </p>
@@ -223,7 +221,7 @@ const HODDashboard = () => {
                     href={file.fileUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
                   >
                     <i className="fas fa-download text-sm"></i>
                     View File

@@ -6,6 +6,7 @@ import PrincipalDashboard from "../pages/PrincipalDashboard";
 import FacultyDashboard from "../pages/FacultyDashboard";
 import HODDashboard from "../pages/HODDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
+import StudentDashboard from "../pages/StudentDashboard";
 import Posters from "../pages/Posters";
 import DisplayScreen from "../pages/DisplayScreen";
 import Home from "../pages/Home";
@@ -13,6 +14,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import Repository from "../pages/Repository";
 import UploadRepository from "../pages/UploadRepository";
 import ManagePosters from "../pages/ManagePosters";
+import Profile from "../pages/Profile";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -74,11 +76,20 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/student-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route
   path="/repository"
   element={
     <ProtectedRoute
-      allowedRoles={["chairman", "principal", "hod", "faculty"]}
+      allowedRoles={["chairman", "principal", "hod", "faculty", "student"]}
     >
       <Repository />
     </ProtectedRoute>
@@ -91,6 +102,15 @@ const AppRoutes = () => {
             allowedRoles={["chairman", "principal", "hod", "faculty"]}
           >
             <Posters />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRoles={["chairman", "principal", "hod", "faculty", "admin", "student"]}>
+            <Profile />
           </ProtectedRoute>
         }
       />

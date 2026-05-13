@@ -191,7 +191,7 @@ const PrincipalDashboard = () => {
             <span>Loading posters...</span>
           </div>
         ) : (
-          <PosterList posters={posters} />
+          <PosterList posters={posters} showActions={false} />
         )}
       </div>
 

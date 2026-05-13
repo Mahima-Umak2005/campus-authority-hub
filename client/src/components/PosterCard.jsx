@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
-const PosterCard = ({ poster, onDelete, onEdit }) => {
+const PosterCard = ({ poster, onDelete, onEdit, showActions = true }) => {
   const { user } = useAuth();
 
   const canEdit = user && (
@@ -86,19 +86,17 @@ const PosterCard = ({ poster, onDelete, onEdit }) => {
         </h4>
         <p className="text-gray-600 text-sm mb-4 flex-1 line-clamp-3">{poster.description}</p>
 
-        <div className="flex gap-2.5 mt-auto pt-3 border-t border-gray-100">
-          {canEdit && (
+        {showActions && canEdit && (
+          <div className="flex gap-2.5 mt-auto pt-3 border-t border-gray-100">
             <button className="flex-1 p-2 bg-blue-600 text-white border-none rounded-lg cursor-pointer font-semibold text-sm transition-colors hover:bg-blue-700" onClick={handleEdit}>
               Edit
             </button>
-          )}
 
-          {canEdit && (
             <button className="flex-1 p-2 bg-red-500 text-white border-none rounded-lg cursor-pointer font-semibold text-sm transition-colors hover:bg-red-600" onClick={handleDelete}>
               Delete
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
