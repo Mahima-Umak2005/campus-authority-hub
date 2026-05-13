@@ -1,36 +1,35 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import axios from "axios";
+import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
+
+const API_URL = "http://localhost:5000/api/posters";
+const PRIORITIES = ["high", "medium", "low"];
 
 const ManagePosters = () => {
   const { user } = useAuth();
-
   const [allPosters, setAllPosters] = useState([]);
   const [posters, setPosters] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState("all");
 
-  // ===============================
-  // Fetch Posters
-  // ===============================
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
+
   const fetchPosters = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(
-        "http://localhost:5000/api/posters/dashboard",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setAllPosters(res.data);
-      setPosters(res.data);
+      setLoading(true);
+      const res = await axios.get(`${API_URL}/dashboard`, getAuthHeaders());
+      setAllPosters(res.data || []);
+      setPosters(res.data || []);
     } catch (error) {
       console.log(error);
       alert("Failed to load posters");
@@ -43,15 +42,14 @@ const ManagePosters = () => {
     fetchPosters();
   }, []);
 
-  // ===============================
-  // Search + Filter
-  // ===============================
   useEffect(() => {
+    const searchText = search.trim().toLowerCase();
+
     let filtered = [...allPosters];
 
-    if (search.trim()) {
+    if (searchText) {
       filtered = filtered.filter((item) =>
-        item.title.toLowerCase().includes(search.toLowerCase())
+        (item.title || "").toLowerCase().includes(searchText)
       );
     }
 
@@ -62,103 +60,99 @@ const ManagePosters = () => {
     setPosters(filtered);
   }, [search, priority, allPosters]);
 
-  // ===============================
-  // Delete Poster
-  // ===============================
+  const canManagePoster = (poster) => {
+    if (!user) return false;
+
+    const uploadedBy =
+      typeof poster.uploadedBy === "object"
+        ? poster.uploadedBy?._id
+        : poster.uploadedBy;
+
+    const isDepartmentPoster =
+      user.role === "hod" &&
+      user.department &&
+      user.department !== "all" &&
+      poster.targetDepartments?.includes(user.department);
+
+    return (
+      uploadedBy === user._id ||
+      user.role === "principal" ||
+      user.role === "admin" ||
+      user.role === "chairman" ||
+      isDepartmentPoster
+    );
+  };
+
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Delete this poster?");
     if (!confirmDelete) return;
 
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`http://localhost:5000/api/posters/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const updated = allPosters.filter((item) => item._id !== id);
-      setAllPosters(updated);
-
+      await axios.delete(`${API_URL}/${id}`, getAuthHeaders());
+      setAllPosters((current) => current.filter((item) => item._id !== id));
       alert("Poster deleted successfully");
     } catch (error) {
       console.log(error);
-      alert("Delete failed");
+      alert(error.response?.data?.message || "Delete failed");
     }
   };
 
-  // ===============================
-  // Edit Poster
-  // ===============================
   const handleEdit = async (poster) => {
     const newTitle = prompt("Enter new title", poster.title);
     if (!newTitle) return;
 
-    const newDescription = prompt(
-      "Enter new description",
-      poster.description
-    );
+    const newDescription = prompt("Enter new description", poster.description);
     if (!newDescription) return;
 
     const newPriority = prompt(
       "Enter priority: high / medium / low",
       poster.priority
     );
-
     if (!newPriority) return;
 
-    if (
-      !["high", "medium", "low"].includes(newPriority.toLowerCase())
-    ) {
+    const priorityValue = newPriority.toLowerCase();
+
+    if (!PRIORITIES.includes(priorityValue)) {
       alert("Invalid priority");
       return;
     }
 
     try {
-      const token = localStorage.getItem("token");
-
       await axios.put(
-        `http://localhost:5000/api/posters/${poster._id}`,
+        `${API_URL}/${poster._id}`,
         {
           title: newTitle,
           description: newDescription,
-          priority: newPriority.toLowerCase(),
+          priority: priorityValue,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        getAuthHeaders()
       );
 
       alert("Poster updated successfully");
       fetchPosters();
     } catch (error) {
       console.log(error);
-      alert("Update failed");
+      alert(error.response?.data?.message || "Update failed");
     }
   };
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Manage Posters</h2>
+      <h2 className="mb-4 text-2xl font-bold text-gray-800">Manage Posters</h2>
 
-      <div className="flex gap-[15px] my-5 flex-wrap">
-      {/* Search + Filter */}
-      <div style={styles.topBar}>
+      <div className="my-5 flex flex-wrap gap-[15px]">
         <input
           type="text"
           placeholder="Search posters..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="p-2.5 w-[260px] rounded-lg border border-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          className="w-[260px] rounded-lg border border-gray-300 p-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         />
 
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="p-2.5 rounded-lg border border-gray-300 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+          className="rounded-lg border border-gray-300 bg-white p-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         >
           <option value="all">All Priority</option>
           <option value="high">High</option>
@@ -167,7 +161,6 @@ const ManagePosters = () => {
         </select>
       </div>
 
-      {/* Content */}
       {loading ? (
         <p className="text-gray-500 italic">Loading posters...</p>
       ) : posters.length === 0 ? (
@@ -175,156 +168,58 @@ const ManagePosters = () => {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
           {posters.map((poster) => (
-            <div key={poster._id} className="bg-white p-[15px] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex flex-col">
+            <div
+              key={poster._id}
+              className="flex flex-col rounded-xl bg-white p-[15px] shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+            >
               <img
                 src={poster.imageUrl}
-                alt={poster.title}
-                className="w-full h-[180px] object-cover rounded-[10px] mb-2.5"
+                alt={poster.title || "Poster"}
+                className="mb-2.5 h-[180px] w-full rounded-[10px] object-cover"
               />
 
-              <h3 className="text-lg font-bold text-gray-800 mb-1">{poster.title}</h3>
-              <p className="text-gray-600 text-sm mb-2.5 flex-grow">{poster.description}</p>
-
-              <p className="text-sm mb-3">
-                <strong className="text-gray-800">Priority:</strong> <span className="capitalize">{poster.priority}</span>
-                {!poster.isActive && <span className="text-red-500 ml-2.5 font-bold">[DELETED]</span>}
+              <h3 className="mb-1 text-lg font-bold text-gray-800">
+                {poster.title}
+              </h3>
+              <p className="mb-2.5 flex-grow text-sm text-gray-600">
+                {poster.description}
               </p>
 
-              <div className="flex gap-2.5 mt-auto pt-2">
-                {user && (poster.uploadedBy === user._id || user.role === "principal" || user.role === "admin") && (
-                  <>
-                    <button
-                      className="flex-1 p-2.5 bg-blue-600 text-white border-none rounded-lg cursor-pointer font-semibold transition-colors hover:bg-blue-700"
-                      onClick={() => handleEdit(poster)}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="flex-1 p-2.5 bg-red-500 text-white border-none rounded-lg cursor-pointer font-semibold transition-colors hover:bg-red-600"
-                      onClick={() => handleDelete(poster._id)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              <p>
-                <strong>Priority:</strong> {poster.priority}
+              <p className="mb-3 text-sm">
+                <strong className="text-gray-800">Priority:</strong>{" "}
+                <span className="capitalize">{poster.priority}</span>
                 {!poster.isActive && (
-                  <span style={styles.deleted}>
+                  <span className="ml-2.5 font-bold text-red-500">
                     [DELETED]
                   </span>
                 )}
               </p>
 
-              {/* Buttons */}
-              <div style={styles.btnGroup}>
-                {user &&
-                  (
-                    poster.uploadedBy?._id === user._id ||
-                    user.role === "principal" ||
-                    user.role === "chairman"
-                  ) && (
-                    <>
-                      <button
-                        style={styles.editBtn}
-                        onClick={() => handleEdit(poster)}
-                      >
-                        Edit
-                      </button>
+              {canManagePoster(poster) && (
+                <div className="mt-auto flex gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    className="flex-1 cursor-pointer rounded-lg border-none bg-blue-600 p-2.5 font-semibold text-white transition-colors hover:bg-blue-700"
+                    onClick={() => handleEdit(poster)}
+                  >
+                    Edit
+                  </button>
 
-                      <button
-                        style={styles.deleteBtn}
-                        onClick={() =>
-                          handleDelete(poster._id)
-                        }
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-              </div>
+                  <button
+                    type="button"
+                    className="flex-1 cursor-pointer rounded-lg border-none bg-red-500 p-2.5 font-semibold text-white transition-colors hover:bg-red-600"
+                    onClick={() => handleDelete(poster._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
     </Layout>
   );
-};
-
-const styles = {
-  topBar: {
-    display: "flex",
-    gap: "15px",
-    margin: "20px 0",
-    flexWrap: "wrap",
-  },
-
-  input: {
-    padding: "10px",
-    width: "260px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-  },
-
-  select: {
-    padding: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-    gap: "20px",
-  },
-
-  card: {
-    background: "#fff",
-    padding: "15px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  },
-
-  image: {
-    width: "100%",
-    height: "180px",
-    objectFit: "cover",
-    borderRadius: "10px",
-    marginBottom: "10px",
-  },
-
-  deleted: {
-    color: "red",
-    marginLeft: "10px",
-    fontWeight: "bold",
-  },
-
-  btnGroup: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "12px",
-  },
-
-  editBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-
-  deleteBtn: {
-    flex: 1,
-    padding: "10px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
 };
 
 export default ManagePosters;
