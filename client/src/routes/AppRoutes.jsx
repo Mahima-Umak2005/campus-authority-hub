@@ -44,7 +44,7 @@ const AppRoutes = () => {
       <Route
   path="/manage-posters"
   element={
-    <ProtectedRoute allowedRoles={["chairman", "principal"]}>
+    <ProtectedRoute allowedRoles={["chairman", "principal", "hod"]}>
       <ManagePosters />
     </ProtectedRoute>
   }
@@ -89,7 +89,7 @@ const AppRoutes = () => {
   path="/repository"
   element={
     <ProtectedRoute
-      allowedRoles={["chairman", "principal", "hod", "faculty", "student"]}
+      allowedRoles={["chairman", "principal", "hod", "faculty"]}
     >
       <Repository />
     </ProtectedRoute>

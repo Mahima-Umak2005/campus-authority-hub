@@ -2,25 +2,112 @@
 
 const Poster = require("../models/Poster");
 
+const ROLE_AUDIENCES = ["hod", "faculty", "student"];
+const DEPARTMENTS = ["computer", "electrical", "mechanical", "civil", "all"];
+
+const parseArray = (value, fallback = []) => {
+  if (!value) return fallback;
+  if (Array.isArray(value)) return value;
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+const sanitizeDepartments = (departments) => {
+  const cleaned = departments.filter((department) =>
+    DEPARTMENTS.includes(department)
+  );
+
+  return cleaned.length ? [...new Set(cleaned)] : ["all"];
+};
+
+const buildPosterAccess = (user, body) => {
+  const requestedAudience = parseArray(body.targetAudience);
+  const requestedDepartments = sanitizeDepartments(
+    parseArray(body.targetDepartments, ["all"])
+  );
+
+  if (user.role === "principal" || user.role === "chairman") {
+    if (body.visibilityMode === "all_hods") {
+      return {
+        targetAudience: ["hod"],
+        targetDepartments: ["all"],
+      };
+    }
+
+    if (body.visibilityMode === "selected_departments") {
+      return {
+        targetAudience: ROLE_AUDIENCES,
+        targetDepartments: requestedDepartments.filter(
+          (department) => department !== "all"
+        ),
+      };
+    }
+
+    return {
+      targetAudience: ROLE_AUDIENCES,
+      targetDepartments: ["all"],
+    };
+  }
+
+  if (user.role === "hod") {
+    const allowedAudience = requestedAudience.filter((audience) =>
+      ["faculty", "student"].includes(audience)
+    );
+
+    return {
+      targetAudience: allowedAudience.length
+        ? [...new Set(allowedAudience)]
+        : ["faculty", "student"],
+      targetDepartments: [user.department],
+    };
+  }
+
+  if (user.role === "faculty") {
+    return {
+      targetAudience: ["student"],
+      targetDepartments: [user.department],
+    };
+  }
+
+  return {
+    targetAudience: [],
+    targetDepartments: [],
+  };
+};
+
+const isVisibleToUser = (poster, role, department) => {
+  if (!role) return true;
+
+  const audience = poster.targetAudience || [];
+  const departments = poster.targetDepartments || [];
+  const audienceAllowed = audience.includes("all") || audience.includes(role);
+  const departmentAllowed =
+    departments.includes("all") || departments.includes(department);
+
+  return audienceAllowed && departmentAllowed;
+};
+
 const createPoster = async (req, res) => {
   try {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    const {
-      title,
-      description,
-      targetAudience,
-      targetDepartments,
-      priority,
-      expiryDate,
-    } = req.body;
+    const { title, description, priority, expiryDate } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "Poster file is required" });
     }
 
     const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const { targetAudience, targetDepartments } = buildPosterAccess(
+      req.user,
+      req.body
+    );
 
     const poster = await Poster.create({
       title,
@@ -29,8 +116,8 @@ const createPoster = async (req, res) => {
       publicId: req.file.filename,
       uploadedBy: req.user._id,
       uploaderRole: req.user.role,
-      targetAudience: targetAudience ? JSON.parse(targetAudience) : [],
-      targetDepartments: targetDepartments ? JSON.parse(targetDepartments) : [],
+      targetAudience,
+      targetDepartments,
       priority,
       expiryDate,
     });
@@ -55,7 +142,11 @@ const getActivePosters = async (req, res) => {
       expiryDate: { $gte: now },
     }).sort({ createdAt: -1 });
 
-    res.json(posters);
+    res.json(
+      posters.filter((poster) =>
+        isVisibleToUser(poster, role, department)
+      )
+    );
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -71,7 +162,8 @@ const deletePoster = async (req, res) => {
     if (
       poster.uploadedBy.toString() !== req.user._id.toString() &&
       req.user.role !== "principal" &&
-      req.user.role !== "admin"
+      req.user.role !== "admin" &&
+      req.user.role !== "chairman"
     ) {
       return res.status(403).json({ message: "Not authorized to delete this poster" });
     }
@@ -97,7 +189,8 @@ const updatePoster = async (req, res) => {
     if (
       poster.uploadedBy.toString() !== req.user._id.toString() &&
       req.user.role !== "principal" &&
-      req.user.role !== "admin"
+      req.user.role !== "admin" &&
+      req.user.role !== "chairman"
     ) {
       return res.status(403).json({ message: "Not authorized to edit this poster" });
     }
@@ -121,9 +214,16 @@ const getDashboardPosters = async (req, res) => {
     const now = new Date();
     
     let query = {};
-    if (req.user.role === "admin" || req.user.role === "principal") {
+    if (
+      req.user.role === "admin" ||
+      req.user.role === "principal" ||
+      req.user.role === "chairman"
+    ) {
       // Admin/Principal see all posters
       query = {};
+    } else if (req.user.role === "hod") {
+      // HODs manage only posters uploaded by themselves
+      query = { uploadedBy: req.user._id };
     } else {
       // Others see active posters for their department OR any inactive posters they uploaded themselves
       // (For simplicity, active posters are returned regardless of department since getActivePosters does the same)

@@ -44,7 +44,6 @@ const ManagePosters = () => {
 
   useEffect(() => {
     const searchText = search.trim().toLowerCase();
-
     let filtered = [...allPosters];
 
     if (searchText) {
@@ -68,18 +67,11 @@ const ManagePosters = () => {
         ? poster.uploadedBy?._id
         : poster.uploadedBy;
 
-    const isDepartmentPoster =
-      user.role === "hod" &&
-      user.department &&
-      user.department !== "all" &&
-      poster.targetDepartments?.includes(user.department);
-
     return (
       uploadedBy === user._id ||
       user.role === "principal" ||
       user.role === "admin" ||
-      user.role === "chairman" ||
-      isDepartmentPoster
+      user.role === "chairman"
     );
   };
 

@@ -18,6 +18,7 @@ const Sidebar = () => {
     user?.role === "chairman" ||
     user?.role === "principal" ||
     user?.role === "hod";
+  const canViewRepository = user?.role !== "student";
 
   return (
     <div className="w-[250px] min-h-screen bg-slate-900 text-white p-5 flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
@@ -29,9 +30,11 @@ const Sidebar = () => {
           Dashboard
         </Link>
 
-        <Link to="/repository" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
-          Repository
-        </Link>
+        {canViewRepository && (
+          <Link to="/repository" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Repository
+          </Link>
+        )}
 
         {canUpload && (
           <Link to="/repository/upload" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">

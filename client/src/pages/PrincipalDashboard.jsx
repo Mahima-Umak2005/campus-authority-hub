@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import PosterList from "../components/PosterList";
 import axios from "axios";
-import { getActivePostersApi } from "../api/posters";
+import { getDashboardPostersApi } from "../api/posters";
 import { registerApi } from "../api/auth";
 import { getDashboardFiles } from "../api/repository";
 
@@ -84,8 +84,14 @@ const PrincipalDashboard = () => {
     const fetchPosters = async () => {
       try {
         const token = localStorage.getItem("token");
-        const { data } = await getActivePostersApi("principal", "all", token);
-        setPosters(data);
+        const { data } = await getDashboardPostersApi(token);
+        const now = new Date();
+        setPosters(
+          (data || []).filter(
+            (poster) =>
+              poster.isActive !== false && new Date(poster.expiryDate) >= now
+          )
+        );
       } catch (err) {
         console.log(err);
       } finally {
