@@ -6,6 +6,31 @@ import { useAuth } from "../context/AuthContext";
 const API_URL = "http://localhost:5000/api/posters";
 const PRIORITIES = ["high", "medium", "low"];
 
+const getPosterStatus = (poster) => {
+  const now = new Date();
+  const publishDate = poster.publishDate ? new Date(poster.publishDate) : null;
+  const expiryDate = poster.expiryDate ? new Date(poster.expiryDate) : null;
+
+  if (poster.isActive === false) return "deleted";
+  if (publishDate && publishDate > now) return "scheduled";
+  if (expiryDate && expiryDate < now) return "expired";
+  return "active";
+};
+
+const getDaysUntilExpiry = (poster) => {
+  if (!poster.expiryDate) return null;
+
+  const diff = new Date(poster.expiryDate).getTime() - Date.now();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
+const statusClasses = {
+  active: "bg-green-50 text-green-700 border-green-200",
+  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  expired: "bg-amber-50 text-amber-700 border-amber-200",
+  deleted: "bg-red-50 text-red-700 border-red-200",
+};
+
 const ManagePosters = () => {
   const { user } = useAuth();
   const [allPosters, setAllPosters] = useState([]);
@@ -13,6 +38,7 @@ const ManagePosters = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -56,8 +82,12 @@ const ManagePosters = () => {
       filtered = filtered.filter((item) => item.priority === priority);
     }
 
+    if (status !== "all") {
+      filtered = filtered.filter((item) => getPosterStatus(item) === status);
+    }
+
     setPosters(filtered);
-  }, [search, priority, allPosters]);
+  }, [search, priority, status, allPosters]);
 
   const canManagePoster = (poster) => {
     if (!user) return false;
@@ -109,6 +139,18 @@ const ManagePosters = () => {
       return;
     }
 
+    const newPublishDate = prompt(
+      "Enter publish date YYYY-MM-DD",
+      poster.publishDate ? poster.publishDate.slice(0, 10) : ""
+    );
+    if (newPublishDate === null) return;
+
+    const newExpiryDate = prompt(
+      "Enter expiry date YYYY-MM-DD",
+      poster.expiryDate ? poster.expiryDate.slice(0, 10) : ""
+    );
+    if (!newExpiryDate) return;
+
     try {
       await axios.put(
         `${API_URL}/${poster._id}`,
@@ -116,6 +158,8 @@ const ManagePosters = () => {
           title: newTitle,
           description: newDescription,
           priority: priorityValue,
+          publishDate: newPublishDate || new Date().toISOString(),
+          expiryDate: newExpiryDate,
         },
         getAuthHeaders()
       );
@@ -151,6 +195,18 @@ const ManagePosters = () => {
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
+
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="rounded-lg border border-gray-300 bg-white p-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="expired">Expired</option>
+          <option value="deleted">Deleted</option>
+        </select>
       </div>
 
       {loading ? (
@@ -180,12 +236,21 @@ const ManagePosters = () => {
               <p className="mb-3 text-sm">
                 <strong className="text-gray-800">Priority:</strong>{" "}
                 <span className="capitalize">{poster.priority}</span>
-                {!poster.isActive && (
-                  <span className="ml-2.5 font-bold text-red-500">
-                    [DELETED]
-                  </span>
-                )}
               </p>
+
+              <div className="mb-3 flex flex-wrap gap-2">
+                <span className={`rounded border px-2 py-0.5 text-xs font-bold capitalize ${statusClasses[getPosterStatus(poster)]}`}>
+                  {getPosterStatus(poster)}
+                </span>
+                {getPosterStatus(poster) === "active" &&
+                  getDaysUntilExpiry(poster) !== null &&
+                  getDaysUntilExpiry(poster) <= 3 &&
+                  getDaysUntilExpiry(poster) >= 0 && (
+                    <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                      Expires in {getDaysUntilExpiry(poster)} day{getDaysUntilExpiry(poster) === 1 ? "" : "s"}
+                    </span>
+                  )}
+              </div>
 
               {canManagePoster(poster) && (
                 <div className="mt-auto flex gap-2.5 pt-2">

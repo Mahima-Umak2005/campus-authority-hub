@@ -89,7 +89,9 @@ const PrincipalDashboard = () => {
         setPosters(
           (data || []).filter(
             (poster) =>
-              poster.isActive !== false && new Date(poster.expiryDate) >= now
+              poster.isActive !== false &&
+              new Date(poster.expiryDate) >= now &&
+              (!poster.publishDate || new Date(poster.publishDate) <= now)
           )
         );
       } catch (err) {

@@ -97,7 +97,7 @@ const createPoster = async (req, res) => {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    const { title, description, priority, expiryDate } = req.body;
+    const { title, description, priority, publishDate, expiryDate } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "Poster file is required" });
@@ -119,6 +119,7 @@ const createPoster = async (req, res) => {
       targetAudience,
       targetDepartments,
       priority,
+      publishDate: publishDate || new Date(),
       expiryDate,
     });
 
@@ -139,6 +140,7 @@ const getActivePosters = async (req, res) => {
 
     const posters = await Poster.find({
       isActive: true,
+      publishDate: { $lte: now },
       expiryDate: { $gte: now },
     }).sort({ createdAt: -1 });
 
@@ -178,7 +180,7 @@ const deletePoster = async (req, res) => {
 };
 const updatePoster = async (req, res) => {
   try {
-    const { title, description, priority, expiryDate } = req.body;
+    const { title, description, priority, publishDate, expiryDate } = req.body;
 
     const poster = await Poster.findById(req.params.id);
 
@@ -198,6 +200,7 @@ const updatePoster = async (req, res) => {
     poster.title = title || poster.title;
     poster.description = description || poster.description;
     poster.priority = priority || poster.priority;
+    poster.publishDate = publishDate || poster.publishDate;
     poster.expiryDate = expiryDate || poster.expiryDate;
 
     const updatedPoster = await poster.save();
@@ -221,15 +224,19 @@ const getDashboardPosters = async (req, res) => {
     ) {
       // Admin/Principal see all posters
       query = {};
-    } else if (req.user.role === "hod") {
-      // HODs manage only posters uploaded by themselves
+    } else if (req.user.role === "hod" || req.user.role === "faculty") {
+      // HODs and faculty manage only posters uploaded by themselves
       query = { uploadedBy: req.user._id };
     } else {
       // Others see active posters for their department OR any inactive posters they uploaded themselves
       // (For simplicity, active posters are returned regardless of department since getActivePosters does the same)
       query = {
         $or: [
-          { isActive: true, expiryDate: { $gte: now } },
+          {
+            isActive: true,
+            publishDate: { $lte: now },
+            expiryDate: { $gte: now },
+          },
           { uploadedBy: req.user._id }
         ]
       };

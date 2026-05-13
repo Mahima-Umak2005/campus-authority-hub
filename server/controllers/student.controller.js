@@ -5,16 +5,24 @@ const User = require("../models/User");
 
 const departmentMap = {
   computer: "computer",
+  "computer department": "computer",
+  "computer engineering": "computer",
   "computer science": "computer",
   "computer science engineering": "computer",
+  cs: "computer",
   cse: "computer",
   electrical: "electrical",
+  "electrical department": "electrical",
+  "electrical and electronics": "electrical",
   "electrical engineering": "electrical",
   ee: "electrical",
+  eee: "electrical",
   mechanical: "mechanical",
+  "mechanical department": "mechanical",
   "mechanical engineering": "mechanical",
   me: "mechanical",
   civil: "civil",
+  "civil department": "civil",
   "civil engineering": "civil",
   ce: "civil",
 };
@@ -90,6 +98,7 @@ const uploadStudentsCSV = async (req, res) => {
       let skippedCount = 0;
       let invalidCount = 0;
       let wrongDepartmentCount = 0;
+      const wrongDepartments = new Set();
 
       for (const row of rows) {
         const cleanRow = {};
@@ -110,6 +119,7 @@ const uploadStudentsCSV = async (req, res) => {
 
         if (department !== hodDepartment) {
           wrongDepartmentCount++;
+          wrongDepartments.add(cleanRow.department);
           continue;
         }
 
@@ -137,7 +147,11 @@ const uploadStudentsCSV = async (req, res) => {
       fs.unlinkSync(filePath);
 
       return res.status(200).json({
-        message: `Added ${addedCount} students with default password 12345. Skipped ${skippedCount} existing, ${invalidCount} invalid, and ${wrongDepartmentCount} outside your department.`,
+        message: `Added ${addedCount} students with default password 12345. Skipped ${skippedCount} existing, ${invalidCount} invalid, and ${wrongDepartmentCount} outside your department. Expected department: ${hodDepartment}${
+          wrongDepartments.size
+            ? `. Found outside department values: ${[...wrongDepartments].join(", ")}`
+            : ""
+        }.`,
       });
     } catch (error) {
       console.error("Error processing CSV:", error);
@@ -156,6 +170,111 @@ const uploadStudentsCSV = async (req, res) => {
   }
 };
 
+const getDepartmentStudents = async (req, res) => {
+  try {
+    const department = normalizeDepartment(req.user.department);
+
+    const students = await User.find({
+      role: "student",
+      department,
+    })
+      .select("-password")
+      .sort({ name: 1 });
+
+    return res.json(students);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateDepartmentStudent = async (req, res) => {
+  try {
+    const department = normalizeDepartment(req.user.department);
+    const { name, email, className } = req.body;
+
+    const student = await User.findOne({
+      _id: req.params.id,
+      role: "student",
+      department,
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (email && email !== student.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+    }
+
+    student.name = name?.trim() || student.name;
+    student.email = email?.trim() || student.email;
+    student.className = className?.trim() || "";
+
+    const updatedStudent = await student.save();
+
+    return res.json({
+      _id: updatedStudent._id,
+      name: updatedStudent.name,
+      email: updatedStudent.email,
+      role: updatedStudent.role,
+      department: updatedStudent.department,
+      className: updatedStudent.className,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteDepartmentStudent = async (req, res) => {
+  try {
+    const department = normalizeDepartment(req.user.department);
+
+    const student = await User.findOneAndDelete({
+      _id: req.params.id,
+      role: "student",
+      department,
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    return res.json({ message: "Student deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const resetDepartmentStudentPassword = async (req, res) => {
+  try {
+    const department = normalizeDepartment(req.user.department);
+
+    const student = await User.findOne({
+      _id: req.params.id,
+      role: "student",
+      department,
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.password = "12345";
+    await student.save();
+
+    return res.json({ message: "Password reset to 12345" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   uploadStudentsCSV,
+  getDepartmentStudents,
+  updateDepartmentStudent,
+  deleteDepartmentStudent,
+  resetDepartmentStudentPassword,
 };

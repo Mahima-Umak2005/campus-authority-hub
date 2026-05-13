@@ -15,6 +15,7 @@ import Repository from "../pages/Repository";
 import UploadRepository from "../pages/UploadRepository";
 import ManagePosters from "../pages/ManagePosters";
 import Profile from "../pages/Profile";
+import ManageStudents from "../pages/ManageStudents";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -44,7 +45,7 @@ const AppRoutes = () => {
       <Route
   path="/manage-posters"
   element={
-    <ProtectedRoute allowedRoles={["chairman", "principal", "hod"]}>
+    <ProtectedRoute allowedRoles={["chairman", "principal", "hod", "faculty"]}>
       <ManagePosters />
     </ProtectedRoute>
   }
@@ -82,6 +83,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["student"]}>
             <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/manage-students"
+        element={
+          <ProtectedRoute allowedRoles={["hod"]}>
+            <ManageStudents />
           </ProtectedRoute>
         }
       />

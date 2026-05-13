@@ -6,7 +6,13 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-const { uploadStudentsCSV } = require("../controllers/student.controller");
+const {
+  uploadStudentsCSV,
+  getDepartmentStudents,
+  updateDepartmentStudent,
+  deleteDepartmentStudent,
+  resetDepartmentStudentPassword,
+} = require("../controllers/student.controller");
 const protect = require("../middleware/auth.middleware");
 const allowRoles = require("../middleware/role.middleware");
 
@@ -50,6 +56,16 @@ router.post(
   allowRoles("hod"),
   upload.single("csvFile"),
   uploadStudentsCSV
+);
+
+router.get("/", protect, allowRoles("hod"), getDepartmentStudents);
+router.put("/:id", protect, allowRoles("hod"), updateDepartmentStudent);
+router.delete("/:id", protect, allowRoles("hod"), deleteDepartmentStudent);
+router.patch(
+  "/:id/reset-password",
+  protect,
+  allowRoles("hod"),
+  resetDepartmentStudentPassword
 );
 
 module.exports = router;

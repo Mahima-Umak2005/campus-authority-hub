@@ -5,8 +5,20 @@ import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
 import PosterList from "../components/PosterList";
 import UploadCSVForm from "../components/UploadCSVForm";
-import { getActivePostersApi } from "../api/posters";
+import { getActivePostersApi, getDashboardPostersApi } from "../api/posters";
 import { getDashboardFiles } from "../api/repository";
+
+const isCurrentlyVisible = (poster) => {
+  const now = new Date();
+  const publishDate = poster.publishDate ? new Date(poster.publishDate) : null;
+  const expiryDate = poster.expiryDate ? new Date(poster.expiryDate) : null;
+
+  return (
+    poster.isActive !== false &&
+    (!publishDate || publishDate <= now) &&
+    (!expiryDate || expiryDate >= now)
+  );
+};
 
 const HODDashboard = () => {
   const { user } = useAuth();
@@ -42,12 +54,19 @@ const HODDashboard = () => {
     const fetchPosters = async () => {
       try {
         const token = localStorage.getItem("token");
-        const { data } = await getActivePostersApi(
-          user?.role,
-          user?.department,
-          token
-        );
-        setPosters((data || []).filter((poster) => poster.isActive !== false));
+        const [visibleRes, ownRes] = await Promise.all([
+          getActivePostersApi(user?.role, user?.department, token),
+          getDashboardPostersApi(token),
+        ]);
+
+        const mergedPosters = [...(visibleRes.data || []), ...(ownRes.data || [])]
+          .filter(isCurrentlyVisible)
+          .filter(
+            (poster, index, current) =>
+              current.findIndex((item) => item._id === poster._id) === index
+          );
+
+        setPosters(mergedPosters);
       } catch (err) {
         console.log(err);
         setError("Failed to load posters");

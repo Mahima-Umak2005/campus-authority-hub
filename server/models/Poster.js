@@ -25,6 +25,7 @@ const posterSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
+    publishDate: { type: Date, default: Date.now },
     expiryDate: { type: Date, required: true },
     isActive: { type: Boolean, default: true },
   },

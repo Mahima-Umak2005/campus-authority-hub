@@ -1,8 +1,35 @@
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
+const getPosterStatus = (poster) => {
+  const now = new Date();
+  const publishDate = poster.publishDate ? new Date(poster.publishDate) : null;
+  const expiryDate = poster.expiryDate ? new Date(poster.expiryDate) : null;
+
+  if (poster.isActive === false) return "deleted";
+  if (publishDate && publishDate > now) return "scheduled";
+  if (expiryDate && expiryDate < now) return "expired";
+  return "active";
+};
+
+const getDaysUntilExpiry = (poster) => {
+  if (!poster.expiryDate) return null;
+
+  const diff = new Date(poster.expiryDate).getTime() - Date.now();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
+const statusClasses = {
+  active: "bg-green-50 text-green-700 border-green-200",
+  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  expired: "bg-amber-50 text-amber-700 border-amber-200",
+  deleted: "bg-red-50 text-red-700 border-red-200",
+};
+
 const PosterCard = ({ poster, onDelete, onEdit, showActions = true }) => {
   const { user } = useAuth();
+  const status = getPosterStatus(poster);
+  const daysUntilExpiry = getDaysUntilExpiry(poster);
 
   const canEdit = user && (
     poster.uploadedBy === user._id || 
@@ -82,8 +109,17 @@ const PosterCard = ({ poster, onDelete, onEdit, showActions = true }) => {
       <div className="p-4 flex flex-col flex-1">
         <h4 className="text-lg font-bold text-gray-800 mb-1">
           {poster.title}
-          {!poster.isActive && <span className="text-red-500 ml-2.5 text-sm font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100">[DELETED]</span>}
         </h4>
+        <div className="mb-2 flex flex-wrap gap-2">
+          <span className={`rounded border px-2 py-0.5 text-xs font-bold capitalize ${statusClasses[status]}`}>
+            {status}
+          </span>
+          {status === "active" && daysUntilExpiry !== null && daysUntilExpiry <= 3 && daysUntilExpiry >= 0 && (
+            <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+              Expires in {daysUntilExpiry} day{daysUntilExpiry === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
         <p className="text-gray-600 text-sm mb-4 flex-1 line-clamp-3">{poster.description}</p>
 
         {showActions && canEdit && (

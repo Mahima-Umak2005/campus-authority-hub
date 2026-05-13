@@ -17,7 +17,8 @@ const Sidebar = () => {
   const canManagePosters =
     user?.role === "chairman" ||
     user?.role === "principal" ||
-    user?.role === "hod";
+    user?.role === "hod" ||
+    user?.role === "faculty";
   const canViewRepository = user?.role !== "student";
 
   return (
@@ -51,6 +52,12 @@ const Sidebar = () => {
         {canManagePosters && (
           <Link to="/manage-posters" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
             Manage Posters
+          </Link>
+        )}
+
+        {user?.role === "hod" && (
+          <Link to="/manage-students" className="no-underline text-slate-200 p-3 rounded-lg bg-slate-800 transition-all hover:bg-slate-700 hover:text-white font-medium">
+            Manage Students
           </Link>
         )}
 

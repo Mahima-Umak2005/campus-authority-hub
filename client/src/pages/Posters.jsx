@@ -8,6 +8,7 @@ const Posters = () => {
     description: "",
     poster: null,
     priority: "medium",
+    publishDate: "",
     expiryDate: "",
     visibilityMode: "all_departments",
     targetDepartments: [],
@@ -88,6 +89,7 @@ const Posters = () => {
       data.append("description", formData.description);
       data.append("poster", formData.poster);
       data.append("priority", formData.priority);
+      data.append("publishDate", formData.publishDate || new Date().toISOString());
       data.append("expiryDate", formData.expiryDate);
 
       const finalDepartments = getDepartments();
@@ -110,6 +112,7 @@ const Posters = () => {
         description: "",
         poster: null,
         priority: "medium",
+        publishDate: "",
         expiryDate: "",
         visibilityMode: "all_departments",
         targetDepartments: [],
@@ -165,6 +168,17 @@ const Posters = () => {
             <option value="medium">Medium Priority</option>
             <option value="high">High Priority</option>
           </select>
+
+          <label className="mb-1 text-sm font-semibold text-gray-700">
+            Publish Date
+          </label>
+          <input
+            type="date"
+            name="publishDate"
+            value={formData.publishDate}
+            onChange={handleChange}
+            className="w-full p-3 mb-[15px] border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+          />
 
           {(user?.role === "principal" || user?.role === "chairman") && (
             <>
