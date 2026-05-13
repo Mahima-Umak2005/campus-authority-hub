@@ -3,12 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 import PosterList from "../components/PosterList";
-<<<<<<< HEAD
-import { getDashboardPostersApi } from "../api/posters";
-=======
 import { getActivePostersApi } from "../api/posters";
 import { getDashboardFiles } from "../api/repository";
->>>>>>> 8807a287da3eb907c15b4fad338a31dd6fb89761
 
 const HODDashboard = () => {
   const { user } = useAuth();
@@ -16,44 +12,40 @@ const HODDashboard = () => {
 
   const [posters, setPosters] = useState([]);
   const [files, setFiles] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const token = localStorage.getItem("token");
-<<<<<<< HEAD
-        const { data } = await getDashboardPostersApi(token);
-        setPosters(data);
-      } catch (err) {
-        console.error("Failed to load posters", err);
-        setError("Failed to load department notices.");
-=======
 
-        const posterData = await getActivePostersApi(
+        // Load Posters
+        const posterRes = await getActivePostersApi(
           "hod",
           user?.department || "all",
           token
         );
 
-        setPosters(posterData.data);
+        setPosters(posterRes?.data || []);
 
-        const repoData = await getDashboardFiles(
+        // Load Repository Files
+        const repoRes = await getDashboardFiles(
           "hod",
-          user?.department || "all"
+          user?.department || "all",
+          token
         );
 
-        setFiles(repoData);
+        setFiles(repoRes?.data || repoRes || []);
       } catch (error) {
-        console.log(error);
->>>>>>> 8807a287da3eb907c15b4fad338a31dd6fb89761
+        console.log("Dashboard Error:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) loadData();
+    if (user) {
+      loadData();
+    }
   }, [user]);
 
   return (
@@ -61,6 +53,7 @@ const HODDashboard = () => {
       <h2>HOD Dashboard</h2>
       <p>Welcome, {user?.name}</p>
 
+      {/* Repository Section */}
       <h3 style={{ marginTop: "30px" }}>Repository Updates</h3>
 
       {files.length === 0 ? (
@@ -78,9 +71,16 @@ const HODDashboard = () => {
         ))
       )}
 
+      {/* Poster Section */}
       <h3 style={{ marginTop: "40px" }}>Posters</h3>
 
-      {loading ? <p>Loading...</p> : <PosterList posters={posters} />}
+      {loading ? (
+        <p>Loading...</p>
+      ) : posters.length === 0 ? (
+        <p>No posters available</p>
+      ) : (
+        <PosterList posters={posters} />
+      )}
     </Layout>
   );
 };
@@ -94,6 +94,7 @@ const styles = {
     borderRadius: "8px",
     cursor: "pointer",
   },
+
   card: {
     background: "#fff",
     padding: "15px",

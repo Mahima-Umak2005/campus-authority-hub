@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 const ManagePosters = () => {
   const { user } = useAuth();
+
   const [allPosters, setAllPosters] = useState([]);
   const [posters, setPosters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +13,9 @@ const ManagePosters = () => {
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState("all");
 
+  // ===============================
+  // Fetch Posters
+  // ===============================
   const fetchPosters = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -39,6 +43,9 @@ const ManagePosters = () => {
     fetchPosters();
   }, []);
 
+  // ===============================
+  // Search + Filter
+  // ===============================
   useEffect(() => {
     let filtered = [...allPosters];
 
@@ -55,6 +62,9 @@ const ManagePosters = () => {
     setPosters(filtered);
   }, [search, priority, allPosters]);
 
+  // ===============================
+  // Delete Poster
+  // ===============================
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Delete this poster?");
     if (!confirmDelete) return;
@@ -78,6 +88,9 @@ const ManagePosters = () => {
     }
   };
 
+  // ===============================
+  // Edit Poster
+  // ===============================
   const handleEdit = async (poster) => {
     const newTitle = prompt("Enter new title", poster.title);
     if (!newTitle) return;
@@ -92,7 +105,15 @@ const ManagePosters = () => {
       "Enter priority: high / medium / low",
       poster.priority
     );
+
     if (!newPriority) return;
+
+    if (
+      !["high", "medium", "low"].includes(newPriority.toLowerCase())
+    ) {
+      alert("Invalid priority");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -123,6 +144,7 @@ const ManagePosters = () => {
     <Layout>
       <h2>Manage Posters</h2>
 
+      {/* Search + Filter */}
       <div style={styles.topBar}>
         <input
           type="text"
@@ -144,6 +166,7 @@ const ManagePosters = () => {
         </select>
       </div>
 
+      {/* Content */}
       {loading ? (
         <p>Loading posters...</p>
       ) : posters.length === 0 ? (
@@ -163,27 +186,39 @@ const ManagePosters = () => {
 
               <p>
                 <strong>Priority:</strong> {poster.priority}
-                {!poster.isActive && <span style={{ color: "red", marginLeft: "10px", fontWeight: "bold" }}>[DELETED]</span>}
+                {!poster.isActive && (
+                  <span style={styles.deleted}>
+                    [DELETED]
+                  </span>
+                )}
               </p>
 
+              {/* Buttons */}
               <div style={styles.btnGroup}>
-                {user && (poster.uploadedBy === user._id || user.role === "principal" || user.role === "admin") && (
-                  <>
-                    <button
-                      style={styles.editBtn}
-                      onClick={() => handleEdit(poster)}
-                    >
-                      Edit
-                    </button>
+                {user &&
+                  (
+                    poster.uploadedBy?._id === user._id ||
+                    user.role === "principal" ||
+                    user.role === "chairman"
+                  ) && (
+                    <>
+                      <button
+                        style={styles.editBtn}
+                        onClick={() => handleEdit(poster)}
+                      >
+                        Edit
+                      </button>
 
-                    <button
-                      style={styles.deleteBtn}
-                      onClick={() => handleDelete(poster._id)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
+                      <button
+                        style={styles.deleteBtn}
+                        onClick={() =>
+                          handleDelete(poster._id)
+                        }
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
               </div>
             </div>
           ))}
@@ -200,28 +235,33 @@ const styles = {
     margin: "20px 0",
     flexWrap: "wrap",
   },
+
   input: {
     padding: "10px",
     width: "260px",
     borderRadius: "8px",
     border: "1px solid #ccc",
   },
+
   select: {
     padding: "10px",
     borderRadius: "8px",
     border: "1px solid #ccc",
   },
+
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
     gap: "20px",
   },
+
   card: {
     background: "#fff",
     padding: "15px",
     borderRadius: "12px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   },
+
   image: {
     width: "100%",
     height: "180px",
@@ -229,11 +269,19 @@ const styles = {
     borderRadius: "10px",
     marginBottom: "10px",
   },
+
+  deleted: {
+    color: "red",
+    marginLeft: "10px",
+    fontWeight: "bold",
+  },
+
   btnGroup: {
     display: "flex",
     gap: "10px",
     marginTop: "12px",
   },
+
   editBtn: {
     flex: 1,
     padding: "10px",
@@ -243,6 +291,7 @@ const styles = {
     borderRadius: "8px",
     cursor: "pointer",
   },
+
   deleteBtn: {
     flex: 1,
     padding: "10px",
